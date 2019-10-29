@@ -24,5 +24,7 @@ public:
 	 * Resets the global forces to (0,0,0)
 	 */
 	virtual void ResetGlobalForces() = 0;
+
+	virtual void SetDampingFactor(float dampingFactor) = 0;
 };
 
