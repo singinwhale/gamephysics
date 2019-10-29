@@ -47,11 +47,14 @@ public:
 	}
 
 	// Calculate the ray direction from camera's origin, going through point (px,py) at the screen
-	Vec3 screenToRay(float px, float py);
+	Vec3 screenToRay(const float px, const float py);
 	Vec3 getCameraPosition();
 	Vec3 getScreenSize();
 	// Project world-based point to position at the screen
-	Vec3 pointToScreen(Vec3 point3D);
+	Vec3 pointToScreen(const Vec3 point3D);
+
+	size_t findClosesPoint(const WorldState& world, float px, float py);
+	void renderWorldParticles(const WorldState& world);
 
 private:
 	// Data Attributes
@@ -68,6 +71,8 @@ private:
 
 	// Simulation State
 	WorldState m_worldState;
+
+	size_t m_selectedParticle = -1;
 
 	std::unique_ptr<IParticleIntegrator> m_particleIntegrator;
 };

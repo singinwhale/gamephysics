@@ -15,6 +15,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_vfRotate = Vec3();
 	m_iNumSpheres    = 100;
 	m_fSphereSize    = 0.05f;*/
+	m_fMass = 1.0;
 	m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
 }
 
@@ -31,9 +32,18 @@ void MassSpringSystemSimulator::reset(){
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
+void TW_CALL callbackAddButton(void* simulator)
+{
+	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+	sim->addMassPoint(Vec3(1.0, 0.0, 0.0), Vec3(0.0, 0.0, 0.0),true);
+	std::cout << "Adding random point" << std::endl;
+}
+
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
+
+	TwAddButton(DUC->g_pTweakBar,"Add random point", &callbackAddButton, this, "");
 	switch (m_iTestCase)
 	{
 	case 0:break;
@@ -138,10 +148,13 @@ void MassSpringSystemSimulator::drawTriangle()
 
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
+	this->renderWorldParticles(this->m_worldState);
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
 {
+	this->m_selectedParticle = this->findClosesPoint(this->m_worldState, x, y);
+
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
 }
@@ -154,7 +167,7 @@ void MassSpringSystemSimulator::onMouse(int x, int y)
 	m_trackmouse.y = y;
 }
 
-Vec3 MassSpringSystemSimulator::screenToRay(float px, float py)
+Vec3 MassSpringSystemSimulator::screenToRay(const float px, const float py)
 {
 	auto screenSize = this->getScreenSize();
 	DirectX::XMMATRIX projectionMatrix, viewMatrix, inverseViewMatrix;
@@ -186,7 +199,7 @@ Vec3 MassSpringSystemSimulator::getScreenSize()
 	return Vec3(viewport.Width,viewport.Height,1.0);
 }
 
-Vec3 MassSpringSystemSimulator::pointToScreen(Vec3 point3D)
+Vec3 MassSpringSystemSimulator::pointToScreen(const Vec3 point3D)
 {
 	auto pointVector = DirectX::XMVectorSet(point3D.x, point3D.y, point3D.z, 1.0);
 	auto viewMat = this->DUC->g_camera.GetViewMatrix();
@@ -195,6 +208,49 @@ Vec3 MassSpringSystemSimulator::pointToScreen(Vec3 point3D)
 	auto screenVector = DirectX::XMVector3Project(pointVector, 0, 0, screenSize.x, screenSize.y, 0.0, 1.0, projectionMat, viewMat, DirectX::XMMatrixIdentity());
 
 	return Vec3(DirectX::XMVectorGetX(screenVector), DirectX::XMVectorGetY(screenVector),0);
+}
+
+size_t MassSpringSystemSimulator::findClosesPoint(const WorldState & world, float px, float py)
+{
+	float distance = 1e10;
+	float threshold = 40;
+	// Always return at least the first point
+	size_t pickedIndex = 0;
+	for(size_t index = 0; index < world.particles.size(); index++)
+	{
+		auto& particle = world.particles[index];
+		auto currentDistance = norm(this->pointToScreen(particle.position) - Vec3(px, py, 0.0));
+		if (currentDistance < distance)
+		{
+			distance = currentDistance;
+			pickedIndex = index;
+		}
+	}
+	if (distance > threshold)
+	{   // if the closest point further than threshold, then abort
+		return -1;
+	}
+	// return the index of the closes point
+	return pickedIndex;
+}
+
+void MassSpringSystemSimulator::renderWorldParticles(const WorldState & world)
+{
+	for (size_t index = 0; index < world.particles.size(); index++)
+	{
+		auto& particle = world.particles[index];
+
+		auto position = DirectX::XMVectorSet(particle.position.x, particle.position.y, particle.position.z,1.0);
+		auto scale = DirectX::XMVectorSet(particle.mass, particle.mass, particle.mass, 1.0);
+		scale = DirectX::XMVectorScale(scale, 0.1);
+		Vec3 color = Vec3(1.0);
+		if (m_selectedParticle == index)
+		{
+			color = Vec3(1.0, 0.0, 0.0);
+		}
+		DUC->setUpLighting(Vec3(), 0.4*Vec3(1, 1, 1), 100, color);
+		this->DUC->drawSphere(position, scale);
+	}
 }
 
 void MassSpringSystemSimulator::setMass(float mass)
