@@ -135,6 +135,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 	//case 1: drawSomeRandomObjects();break;
 	//case 2: drawTriangle();break;
 	}
+
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -149,4 +150,47 @@ void MassSpringSystemSimulator::onMouse(int x, int y)
 	m_oldtrackmouse.y = y;
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+}
+
+Vec3 MassSpringSystemSimulator::screenToRay(float px, float py)
+{
+	auto screenSize = this->getScreenSize();
+	DirectX::XMMATRIX projectionMatrix, viewMatrix, inverseViewMatrix;
+	projectionMatrix = this->DUC->g_camera.GetProjMatrix();
+	viewMatrix = this->DUC->g_camera.GetViewMatrix();
+	
+	auto pixelVector = DirectX::XMVectorSet(px, py, 0.0, 1.0);
+	auto resultVector = DirectX::XMVector3Unproject(pixelVector, 0.0, 0.0, screenSize.x, screenSize.y, 0.0, 1.0, projectionMatrix, viewMatrix, DirectX::XMMatrixIdentity());
+
+	return Vec3(DirectX::XMVectorGetX(resultVector), DirectX::XMVectorGetY(resultVector), DirectX::XMVectorGetZ(resultVector));
+}
+
+Vec3 MassSpringSystemSimulator::getCameraPosition()
+{
+	DirectX::XMMATRIX projectionMatrix, viewMatrix, inverseViewMatrix;
+	viewMatrix = this->DUC->g_camera.GetViewMatrix();
+	inverseViewMatrix = DirectX::XMMatrixInverse(nullptr, viewMatrix);
+	auto cameraOrigin = DirectX::XMVectorSet(0, 0, 0, 1.0);
+	auto cameraPositionVector = DirectX::XMVector4Transform(cameraOrigin, inverseViewMatrix);
+	auto& cpv = cameraPositionVector;
+	return Vec3(DirectX::XMVectorGetX(cpv), ::XMVectorGetY(cpv), ::XMVectorGetZ(cpv));
+}
+
+Vec3 MassSpringSystemSimulator::getScreenSize()
+{
+	D3D11_VIEWPORT viewport;
+	UINT viewportsCount = 1;
+	this->DUC->g_pd3dImmediateContext->RSGetViewports(&viewportsCount, &viewport);
+	return Vec3(viewport.Width,viewport.Height,1.0);
+}
+
+Vec3 MassSpringSystemSimulator::pointToScreen(Vec3 point3D)
+{
+	auto pointVector = DirectX::XMVectorSet(point3D.x, point3D.y, point3D.z, 1.0);
+	auto viewMat = this->DUC->g_camera.GetViewMatrix();
+	auto projectionMat = this->DUC->g_camera.GetProjMatrix();
+	auto screenSize = this->getScreenSize();
+	auto screenVector = DirectX::XMVector3Project(pointVector, 0, 0, screenSize.x, screenSize.y, 0.0, 1.0, projectionMat, viewMat, DirectX::XMMatrixIdentity());
+
+	return Vec3(DirectX::XMVectorGetX(screenVector), DirectX::XMVectorGetY(screenVector),0);
 }

@@ -44,6 +44,13 @@ public:
 		m_iIntegrator = integrator;
 	}
 
+	// Calculate the ray direction from camera's origin, going through point (px,py) at the screen
+	Vec3 screenToRay(float px, float py);
+	Vec3 getCameraPosition();
+	Vec3 getScreenSize();
+	// Project world-based point to position at the screen
+	Vec3 pointToScreen(Vec3 point3D);
+
 private:
 	// Data Attributes
 	float m_fMass;
