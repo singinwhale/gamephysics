@@ -224,14 +224,25 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EulerParticleIntegrator.cpp" />
+    <ClCompile Include="IParticleIntegrator.cpp" />
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
+    <ClCompile Include="MidpointParticleIntegrator.cpp" />
+    <ClCompile Include="ParticleIntegratorBase.cpp" />
+    <ClCompile Include="ParticleSimulationTypes.cpp" />
     <ClCompile Include="TemplateSimulator.cpp" />
     <ClCompile Include="util\FFmpeg.cpp" />
     <ClCompile Include="util\util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DrawingUtilitiesClass.h" />
+    <ClInclude Include="EulerParticleIntegrator.h" />
+    <ClInclude Include="IParticleIntegrator.h" />
     <ClInclude Include="MassSpringSystemSimulator.h" />
+    <ClInclude Include="MidpointParticleIntegrator.h" />
+    <ClInclude Include="ParticleIntegratorBase.h" />
+    <ClInclude Include="ParticleSimulationTypes.h" />
+    <ClInclude Include="PhysicsFunctions.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="TemplateSimulator.h" />
     <ClInclude Include="util\FFmpeg.h" />

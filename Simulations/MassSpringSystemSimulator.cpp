@@ -1,18 +1,28 @@
 #include "MassSpringSystemSimulator.h"
 #include "util/FFmpeg.h"
+#include "EulerParticleIntegrator.h"
+#include "MidpointParticleIntegrator.h"
+
+//Vec3::ZERO is not defined in this compile unit so we create our own definition
+const vector3Dim<double>  vector3Dim<double>::ZERO = Vec3(0, 0, 0);
+const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
 
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
-	m_iTestCase = 0;
+	m_iTestCase = EULER;
 	/*m_vfMovableObjectPos = Vec3();
 	m_vfMovableObjectFinalPos = Vec3();
 	m_vfRotate = Vec3();
 	m_iNumSpheres    = 100;
 	m_fSphereSize    = 0.05f;*/
+	m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
 }
 
+#define STR(content) #content
+
 const char * MassSpringSystemSimulator::getTestCasesStr(){
-	return "Teapot,Random Objects,Triangle";
+
+	return "EULER,LEAPFROG,MIDPOINT";
 }
 
 void MassSpringSystemSimulator::reset(){
@@ -44,16 +54,15 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	{
 	case EULER:
 		cout << "Euler !\n";
-		//m_vfMovableObjectPos = Vec3(0, 0, 0);
-		//m_vfRotate = Vec3(0, 0, 0);
+		m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
 		break;
 	case LEAPFROG:
-		cout << "Leapfrog!\n";
-		//m_iNumSpheres = 100;
-		//m_fSphereSize = 0.05f;
+		cout << "Leapfrog (not implemented. using euler instead)!\n";
+		m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
 		break;
 	case MIDPOINT:
 		cout << "Midpoint !\n";
+		//m_particleIntegrator = std::make_unique<MidpointParticleIntegrator>();
 		break;
 	default:
 		cout << "Undefined Testcase!\n";
@@ -88,19 +97,19 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	// update current setup for each frame
 	switch (m_iTestCase)
 	{// handling different cases
-	case 0:
-		// rotate the teapot
-		//m_vfRotate.x += timeStep;
-		//if (m_vfRotate.x > 2 * M_PI) m_vfRotate.x -= 2.0f * (float)M_PI;
-		//m_vfRotate.y += timeStep;
-		//if (m_vfRotate.y > 2 * M_PI) m_vfRotate.y -= 2.0f * (float)M_PI;
-		//m_vfRotate.z += timeStep;
-		//if (m_vfRotate.z > 2 * M_PI) m_vfRotate.z -= 2.0f * (float)M_PI;
-
+	case EULER:
+		break;
+	case LEAPFROG:
+		// not implemented
+		break;
+	case MIDPOINT:
+		cout << "Midpoint !\n";
 		break;
 	default:
+		cout << "Undefined Testcase!\n";
 		break;
 	}
+	m_worldState = m_particleIntegrator->GetNextSimulationStep(m_worldState, timeStep);
 }
 
 /*
@@ -129,13 +138,6 @@ void MassSpringSystemSimulator::drawTriangle()
 
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
-	switch(m_iTestCase)
-	{
-	//case 0: drawMovableTeapot();break;
-	//case 1: drawSomeRandomObjects();break;
-	//case 2: drawTriangle();break;
-	}
-
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -193,4 +195,62 @@ Vec3 MassSpringSystemSimulator::pointToScreen(Vec3 point3D)
 	auto screenVector = DirectX::XMVector3Project(pointVector, 0, 0, screenSize.x, screenSize.y, 0.0, 1.0, projectionMat, viewMat, DirectX::XMMatrixIdentity());
 
 	return Vec3(DirectX::XMVectorGetX(screenVector), DirectX::XMVectorGetY(screenVector),0);
+}
+
+void MassSpringSystemSimulator::setMass(float mass)
+{
+	for(auto& particle : m_worldState.particles)
+	{
+		particle.mass = mass;
+	}
+}
+
+void MassSpringSystemSimulator::setStiffness(float stiffness)
+{
+	m_fStiffness = stiffness;
+	for (auto& spring : m_worldState.springs)
+	{
+		spring.stiffness = stiffness;
+	}
+}
+
+void MassSpringSystemSimulator::setDampingFactor(float damping)
+{
+	m_particleIntegrator->SetDampingFactor(damping);
+}
+
+int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool isFixed)
+{
+	m_worldState.particles.push_back(Particle(position, Velocity, m_fMass, isFixed));
+	return m_worldState.particles.size() - 1;
+}
+
+void MassSpringSystemSimulator::addSpring(int masspoint1, int masspoint2, float initialLength)
+{
+	m_worldState.springs.push_back(Spring(ParticleHandle(masspoint1), ParticleHandle(masspoint2), initialLength, m_fStiffness));
+}
+
+int MassSpringSystemSimulator::getNumberOfMassPoints()
+{
+	return m_worldState.particles.size();
+}
+
+int MassSpringSystemSimulator::getNumberOfSprings()
+{
+	return m_worldState.springs.size();
+}
+
+Vec3 MassSpringSystemSimulator::getPositionOfMassPoint(int index)
+{
+	return m_worldState.particles[index].position;
+}
+
+Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
+{
+	return m_worldState.particles[index].velocity;
+}
+
+void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
+{
+	m_particleIntegrator->AddGlobalForce(force);
 }

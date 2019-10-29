@@ -1,7 +1,32 @@
 #include "ParticleSimulationTypes.h"
 
-WorldState::WorldState(size_t numParticles, size_t numSprings)
+Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass, bool inIsFixed)
+	: position(inPosition)
+	, velocity(iNVelocity)
+	, mass(inMass)
+	, isFixed(inIsFixed)
 {
-	particles.reserve(numParticles);
-	springs.reserve(numSprings);
+}
+
+Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass)
+	: Particle(inPosition, iNVelocity, inMass)
+{
+}
+
+Particle::Particle(Vec3 inPosition, Vec3 iNVelocity)
+	: Particle(inPosition, iNVelocity, mass)
+{
+}
+
+Particle::Particle(Vec3 inPosition)
+	: Particle(inPosition, Vec3::ZERO)
+{
+}
+
+Spring::Spring(ParticleHandle start, ParticleHandle end, float length, float inStiffness)
+	: startParticle(start)
+	, endParticle(end)
+	, restLength(length)
+	, stiffness(inStiffness)
+{
 }

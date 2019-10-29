@@ -1,6 +1,8 @@
 #ifndef MASSSPRINGSYSTEMSIMULATOR_h
 #define MASSSPRINGSYSTEMSIMULATOR_h
 #include "Simulator.h"
+#include "IParticleIntegrator.h"
+#include "ParticleSimulationTypes.h"
 
 class ID3D11DeviceContext;
 
@@ -63,5 +65,10 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+
+	// Simulation State
+	WorldState m_worldState;
+
+	std::unique_ptr<IParticleIntegrator> m_particleIntegrator;
 };
 #endif
