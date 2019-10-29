@@ -35,8 +35,23 @@ void MassSpringSystemSimulator::reset(){
 void TW_CALL callbackAddButton(void* simulator)
 {
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
-	sim->addMassPoint(Vec3(1.0, 0.0, 0.0), Vec3(0.0, 0.0, 0.0),true);
-	std::cout << "Adding random point" << std::endl;
+	
+	auto index = sim->getNumberOfMassPoints();
+	if (index == 0)
+	{
+		index = 1;
+	}
+	index--;
+
+	auto x1 = static_cast<float>(rand())/RAND_MAX;
+	auto x2 = static_cast<float>(rand())/RAND_MAX;
+	auto x3 = static_cast<float>(rand()) / RAND_MAX;
+
+
+	sim->addMassPoint(Vec3(x1, x3, 0.0), Vec3(0.0, 0.0, 0.0),true);
+	sim->addMassPoint(Vec3(x2, x3+0.2, 0.0), Vec3(0.0, 0.0, 0.0), true);
+	//sim->addSpring(index, index+1, 0.5);
+	std::cout << "Add random string " << x1 << " - " << x2 << std::endl;
 }
 
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
