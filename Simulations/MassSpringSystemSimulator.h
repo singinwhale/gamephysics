@@ -2,6 +2,8 @@
 #define MASSSPRINGSYSTEMSIMULATOR_h
 #include "Simulator.h"
 
+class ID3D11DeviceContext;
+
 // Do Not Change
 #define EULER 0
 #define LEAPFROG 1
