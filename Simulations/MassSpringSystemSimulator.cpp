@@ -7,6 +7,28 @@
 const vector3Dim<double>  vector3Dim<double>::ZERO = Vec3(0, 0, 0);
 const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
 
+void setupScene(Roman::System& system)
+{
+	system.m_particles.clear();
+	system.m_springs.clear();
+
+	size_t ropeCount = 4;
+	system.m_particles.push_back(Roman::Particle(Vec3(0.0,4.0,0.0), Vec3(), 1, true));
+	for (size_t i = 0; i < ropeCount; i++)
+	{
+		system.m_particles.push_back(Roman::Particle(Vec3(0.0, 4.0-i*0.2, 0.0), Vec3(), 1, false));
+		system.m_springs.push_back(Roman::Spring(i, i+1, 40, 0.01));
+	}
+	system.m_particles.back().position.x = 2.0;
+	system.m_particles.back().position.z = 2.0;
+	/*system.m_particles.push_back(Roman::Particle(Vec3(1.0, 2.0, 0.0), Vec3(), 1, false));
+	system.m_particles.push_back(Roman::Particle(Vec3(0.0, 0.5, 0.0), Vec3(), 1, false));
+
+	system.m_springs.push_back(Roman::Spring(0, 1, 4,2.0));
+	system.m_springs.push_back(Roman::Spring(1, 2, 4, 2.0));
+	*/
+}
+
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_iTestCase = EULER;
@@ -17,6 +39,10 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_fSphereSize    = 0.05f;*/
 	m_fMass = 1.0;
 	m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
+
+	setupScene(m_romanSys);
+	m_romanInt.setSystem(&m_romanSys);
+	m_romanInt.setGlobalForce(Vec3(0.0, -9.81, 0.0));
 }
 
 #define STR(content) #content
@@ -30,6 +56,9 @@ void MassSpringSystemSimulator::reset(){
 		m_mouse.x = m_mouse.y = 0;
 		m_trackmouse.x = m_trackmouse.y = 0;
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
+
+		std::cout << "Reset" << std::endl;
+		setupScene(m_romanSys);
 }
 
 void TW_CALL callbackAddButton(void* simulator)
@@ -69,6 +98,41 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	case 2:break;
 	default:break;
 	}
+
+	{
+		Roman::System sys;
+		sys.m_particles.push_back(Roman::Particle(Vec3(), Vec3(-1.0,0,0), 10, false));
+		sys.m_particles.push_back(Roman::Particle(Vec3(0.0,2.0,0.0), Vec3(1, 0, 0), 10, false));
+
+		sys.m_springs.push_back(Roman::Spring(0, 1, 40, 1.0));
+
+	
+		Roman::Euler integrator;
+		integrator.setSystem(&sys);
+		for (size_t i = 0; i < 3; i++)
+		{
+			std::cout << "iteration: " << i << std::endl;
+			sys.printOutParticles();
+			integrator.doStep(0.1);
+		}
+	}
+	{
+		Roman::System sys;
+		sys.m_particles.push_back(Roman::Particle(Vec3(), Vec3(-1.0, 0, 0), 10, false));
+		sys.m_particles.push_back(Roman::Particle(Vec3(0.0, 2.0, 0.0), Vec3(1, 0, 0), 10, false));
+
+		sys.m_springs.push_back(Roman::Spring(0, 1, 40, 1.0));
+
+		Roman::Midpoint integrator;
+		integrator.setSystem(&sys);
+		for (size_t i = 0; i < 3; i++)
+		{
+			std::cout << "iteration: " << i << std::endl;
+			sys.printOutParticles();
+			integrator.doStep(0.1);
+		}
+	}
+	system("pause");
 }
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
@@ -93,6 +157,8 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		cout << "Undefined Testcase!\n";
 		break;
 	}
+
+	setupScene(m_romanSys);
 }
 
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
@@ -135,6 +201,9 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		break;
 	}
 	m_worldState = m_particleIntegrator->GetNextSimulationStep(m_worldState, timeStep);
+
+	m_romanInt.doStep(timeStep);
+	//std::cout << "Doing step !" << std::endl;
 }
 
 /*
@@ -251,9 +320,9 @@ size_t MassSpringSystemSimulator::findClosesPoint(const WorldState & world, floa
 
 void MassSpringSystemSimulator::renderWorldParticles(const WorldState & world)
 {
-	for (size_t index = 0; index < world.particles.size(); index++)
+	for (size_t index = 0; index < m_romanSys.m_particles.size(); index++)
 	{
-		auto& particle = world.particles[index];
+		auto& particle = m_romanSys.m_particles[index];
 
 		auto position = DirectX::XMVectorSet(particle.position.x, particle.position.y, particle.position.z,1.0);
 		auto scale = DirectX::XMVectorSet(particle.mass, particle.mass, particle.mass, 1.0);
@@ -266,6 +335,46 @@ void MassSpringSystemSimulator::renderWorldParticles(const WorldState & world)
 		DUC->setUpLighting(Vec3(), 0.4*Vec3(1, 1, 1), 100, color);
 		this->DUC->drawSphere(position, scale);
 	}
+
+	for (auto& spring: m_romanSys.m_springs)
+	{
+		auto& p1 = m_romanSys.m_particles[spring.start];
+		auto& p2 = m_romanSys.m_particles[spring.end];
+
+		// Detect line length 
+		auto lineLength = norm(p1.position - p2.position);
+		auto ratio = lineLength / spring.length;
+		// Map line length to line color
+		// - close to 0 => red
+		// - close to 1 => white
+		// - close to 2 => blue
+		static Vec3 red = Vec3(1.0, 0.0, 0.0);
+		static Vec3 white = Vec3(1.0, 1.0, 1.0);
+		static Vec3 blue = Vec3(0.0, 0.0, 1.0);
+		Vec3 color = Vec3();
+		if (ratio > 2.0)
+		{	// clamp at <0.0,2.0>
+			ratio = 2.0;
+		}
+		// Hack: non-lineary ehance red/blue color compared to white
+		float nonLinearRatio = 4.0;
+		if (ratio <= 1.0)
+		{
+			ratio = pow(ratio, nonLinearRatio);
+			color = red * (1.0 - ratio) + white * ratio;
+		}
+		else {
+			ratio -= 1.0;
+			ratio = pow(ratio, 1.0/nonLinearRatio);
+			color = white * (1.0 - ratio) + blue * ratio;
+		}
+
+		this->DUC->beginLine();
+		this->DUC->drawLine(p1.position,color,p2.position,color);
+		this->DUC->endLine();
+		
+	}
+	
 }
 
 void MassSpringSystemSimulator::setMass(float mass)
