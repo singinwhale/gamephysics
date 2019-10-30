@@ -69,15 +69,15 @@ private:
 	int m_iIntegrator;
 
 	// UI Attributes
-	Vec3 m_externalForce;
+	Vec3 m_externalForce = Vec3::ZERO;
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
 	
 	float m_bounceRatio;
 
-	bool m_hasFloor;
-	bool m_hasBoudaries;
+	bool m_hasFloor = false;
+	bool m_hasBoudaries = false;
 
 	// Simulation State
 	WorldState m_worldState;

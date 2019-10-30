@@ -9,7 +9,7 @@ Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, double inMass, bool inIsFix
 }
 
 Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, double inMass)
-	: Particle(inPosition, iNVelocity, inMass)
+	: Particle(inPosition, iNVelocity, inMass, false)
 {
 }
 

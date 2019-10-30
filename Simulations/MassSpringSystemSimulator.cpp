@@ -13,7 +13,6 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_bounceRatio = 1.0;
 	m_fMass = 1.0;
-	m_externalForce = Vec3(0, -9.81, 0);
 
 	m_iTestCase = EULER;
 	m_iIntegrator = EULER;
