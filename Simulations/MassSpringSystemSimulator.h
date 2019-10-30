@@ -34,6 +34,9 @@ public:
 	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);
 
+	static void TW_CALL handlePositionChanged(const void* newValue, void* userData);
+	static void TW_CALL twGetPositionChangedCallback(void* targetValue, void* userData);
+		
 	// Specific Functions
 	void setMass(float mass);
 	void setStiffness(float stiffness);

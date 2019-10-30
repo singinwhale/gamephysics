@@ -31,6 +31,8 @@ const char * MassSpringSystemSimulator::getTestCasesStr(){
 }
 
 void MassSpringSystemSimulator::reset(){
+	    m_worldState.particles.clear();
+		m_worldState.springs.clear();
 		m_mouse.x = m_mouse.y = 0;
 		m_trackmouse.x = m_trackmouse.y = 0;
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
@@ -99,6 +101,46 @@ void MassSpringSystemSimulator::twGetGravityCallback(void* targetValue, void* us
 	}
 }
 
+void TW_CALL MassSpringSystemSimulator::handlePositionChanged(const void* newValue, void* userData)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
+	const double* newVector = reinterpret_cast<const double*>(newValue);
+
+	if (sim->m_selectedParticle != -1)
+	{
+		if (sim->m_worldState.particles.size() <= sim->m_selectedParticle)
+		{
+			sim->m_selectedParticle = -1;
+			return;
+		}
+		sim->m_worldState.particles[sim->m_selectedParticle].position.x = newVector[0];
+		sim->m_worldState.particles[sim->m_selectedParticle].position.y = newVector[1];
+		sim->m_worldState.particles[sim->m_selectedParticle].position.z = newVector[2];
+	}
+}
+
+void MassSpringSystemSimulator::twGetPositionChangedCallback(void* targetValue, void* userData)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
+	double* targetVector = reinterpret_cast<double*>(targetValue);
+	
+	targetVector[0] = 0.0f;
+	targetVector[1] = 0.0f;
+	targetVector[2] = 0.0f;
+
+	if (sim->m_selectedParticle != -1)
+	{
+		if (sim->m_worldState.particles.size() <= sim->m_selectedParticle)
+		{
+			sim->m_selectedParticle = -1;
+			return;
+		}
+		targetVector[0] = sim->m_worldState.particles[sim->m_selectedParticle].position.x;
+		targetVector[1] = sim->m_worldState.particles[sim->m_selectedParticle].position.y;
+		targetVector[2] = sim->m_worldState.particles[sim->m_selectedParticle].position.z;
+	}
+}
+
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
@@ -108,6 +150,8 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	TwAddVarRW(DUC->g_pTweakBar, "Bounce ratio", TW_TYPE_FLOAT, &m_bounceRatio, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
+
+	TwAddVarCB(DUC->g_pTweakBar, "Point position", TW_TYPE_DIR3D, &MassSpringSystemSimulator::handlePositionChanged, &MassSpringSystemSimulator::twGetPositionChangedCallback, this, "");
 	
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3D, &MassSpringSystemSimulator::handleGravityChanged, &MassSpringSystemSimulator::twGetGravityCallback, this, "");
 	switch (m_iTestCase)
@@ -125,7 +169,12 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
 	if (m_iTestCase == testCase)
+	{
+		// Reset scene
+		m_worldState.particles.clear();
+		m_worldState.springs.clear();
 		return;
+	}
 	cout << "Testcase changed to: ";
 	m_iTestCase = testCase;
 	setIntegrator(m_iTestCase);
@@ -267,8 +316,12 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 void MassSpringSystemSimulator::onClick(int x, int y)
 {
-	this->m_selectedParticle = this->findClosesPoint(this->m_worldState, x, y);
-
+	auto newParticle = this->findClosesPoint(this->m_worldState, x, y);
+	if (newParticle != -1)
+	{
+		this->m_selectedParticle = newParticle;
+	}
+	
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
 }
