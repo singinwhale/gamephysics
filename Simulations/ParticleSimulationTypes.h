@@ -10,15 +10,15 @@ struct Particle
 {
 	Vec3 position = Vec3::ZERO;
 	Vec3 velocity = Vec3::ZERO;
-	float mass = 0.1;
+	double mass = 0.1;
 	bool isFixed = false;
 
 	// only used during update to accumulate forces
 	Vec3 force = Vec3::ZERO;
 
 	// Constructors
-	Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass, bool inIsFixed);
-	Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass);
+	Particle(Vec3 inPosition, Vec3 iNVelocity, double inMass, bool inIsFixed);
+	Particle(Vec3 inPosition, Vec3 iNVelocity, double inMass);
 	Particle(Vec3 inPosition, Vec3 iNVelocity);
 	Particle(Vec3 inPosition);
 };
@@ -31,15 +31,15 @@ struct Spring
 	ParticleHandle endParticle = -1;
 
 	// rest length of the spring in meters
-	float restLength = 1;
+	double restLength = 1;
 
 	// hook constant for the spring
-	float stiffness = 1;
+	double stiffness = 1;
 
 	// only used during update
 	Vec3 force = Vec3::ZERO;
 
-	Spring(ParticleHandle start, ParticleHandle end, float length, float inStiffness);
+	Spring(ParticleHandle start, ParticleHandle end, double length, double inStiffness);
 };
 
 

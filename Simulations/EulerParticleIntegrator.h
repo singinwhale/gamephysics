@@ -8,6 +8,6 @@ class EulerParticleIntegrator :
 	public ParticleIntegratorBase
 {
 
-	virtual WorldState GetNextSimulationStep(const WorldState& CurrentWorldState, float deltaSeconds) override;
+	virtual WorldState GetNextSimulationStep(const WorldState& CurrentWorldState, double deltaSeconds) override;
 };
 

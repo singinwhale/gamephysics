@@ -71,9 +71,8 @@ private:
 
 	// Simulation State
 	WorldState m_worldState;
+	std::unique_ptr<IParticleIntegrator> m_particleIntegrators[3];
 
 	size_t m_selectedParticle = -1;
-
-	std::unique_ptr<IParticleIntegrator> m_particleIntegrator;
 };
 #endif

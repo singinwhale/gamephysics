@@ -1,6 +1,6 @@
 #include "ParticleSimulationTypes.h"
 
-Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass, bool inIsFixed)
+Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, double inMass, bool inIsFixed)
 	: position(inPosition)
 	, velocity(iNVelocity)
 	, mass(inMass)
@@ -8,7 +8,7 @@ Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass, bool inIsFixe
 {
 }
 
-Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, float inMass)
+Particle::Particle(Vec3 inPosition, Vec3 iNVelocity, double inMass)
 	: Particle(inPosition, iNVelocity, inMass)
 {
 }
@@ -23,7 +23,7 @@ Particle::Particle(Vec3 inPosition)
 {
 }
 
-Spring::Spring(ParticleHandle start, ParticleHandle end, float length, float inStiffness)
+Spring::Spring(ParticleHandle start, ParticleHandle end, double length, double inStiffness)
 	: startParticle(start)
 	, endParticle(end)
 	, restLength(length)

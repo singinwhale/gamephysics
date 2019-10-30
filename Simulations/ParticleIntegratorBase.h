@@ -6,7 +6,7 @@ class ParticleIntegratorBase :
 	public IParticleIntegrator
 {
 public:
-	virtual WorldState GetNextSimulationStep(const WorldState& CurrentWorldState, float deltaSeconds) override;
+	virtual WorldState GetNextSimulationStep(const WorldState& CurrentWorldState, double deltaSeconds) override;
 
 	virtual void AddGlobalForce(Vec3 force) override;
 	virtual void ResetGlobalForces() override;

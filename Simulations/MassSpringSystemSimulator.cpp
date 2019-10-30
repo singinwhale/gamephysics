@@ -9,14 +9,12 @@ const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
 
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
-	m_iTestCase = EULER;
-	/*m_vfMovableObjectPos = Vec3();
-	m_vfMovableObjectFinalPos = Vec3();
-	m_vfRotate = Vec3();
-	m_iNumSpheres    = 100;
-	m_fSphereSize    = 0.05f;*/
 	m_fMass = 1.0;
-	m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
+	m_iTestCase = EULER;
+	m_iIntegrator = EULER;
+	m_particleIntegrators[EULER] = std::make_unique<EulerParticleIntegrator>();
+	m_particleIntegrators[LEAPFROG] = std::make_unique<EulerParticleIntegrator>();
+	m_particleIntegrators[MIDPOINT] = std::make_unique<MidpointParticleIntegrator>();
 }
 
 #define STR(content) #content
@@ -75,19 +73,17 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
 	cout << "Testcase changed to: ";
 	m_iTestCase = testCase;
+	setIntegrator(m_iTestCase);
 	switch (m_iTestCase)
 	{
 	case EULER:
 		cout << "Euler !\n";
-		m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
 		break;
 	case LEAPFROG:
 		cout << "Leapfrog (not implemented. using euler instead)!\n";
-		m_particleIntegrator = std::make_unique<EulerParticleIntegrator>();
 		break;
 	case MIDPOINT:
 		cout << "Midpoint !\n";
-		//m_particleIntegrator = std::make_unique<MidpointParticleIntegrator>();
 		break;
 	default:
 		cout << "Undefined Testcase!\n";
@@ -134,7 +130,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		cout << "Undefined Testcase!\n";
 		break;
 	}
-	m_worldState = m_particleIntegrator->GetNextSimulationStep(m_worldState, timeStep);
+	m_worldState = m_particleIntegrators[m_iIntegrator]->GetNextSimulationStep(m_worldState, timeStep);
 }
 
 /*
@@ -270,6 +266,7 @@ void MassSpringSystemSimulator::renderWorldParticles(const WorldState & world)
 
 void MassSpringSystemSimulator::setMass(float mass)
 {
+	m_fMass = mass;
 	for(auto& particle : m_worldState.particles)
 	{
 		particle.mass = mass;
@@ -287,7 +284,7 @@ void MassSpringSystemSimulator::setStiffness(float stiffness)
 
 void MassSpringSystemSimulator::setDampingFactor(float damping)
 {
-	m_particleIntegrator->SetDampingFactor(damping);
+	m_particleIntegrators[m_iIntegrator]->SetDampingFactor(damping);
 }
 
 int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool isFixed)
@@ -323,5 +320,5 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
-	m_particleIntegrator->AddGlobalForce(force);
+	m_particleIntegrators[m_iIntegrator]->AddGlobalForce(force);
 }

@@ -4,7 +4,9 @@ class MidpointParticleIntegrator :
 	public ParticleIntegratorBase
 {
 public:
-	MidpointParticleIntegrator();
-	~MidpointParticleIntegrator();
+	virtual WorldState GetNextSimulationStep(const WorldState& CurrentWorldState, double deltaSeconds) override;
+
+private:
+	void ComputeForcesOnWorldState(WorldState& worldState);
 };
 

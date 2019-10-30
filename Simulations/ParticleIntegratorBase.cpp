@@ -3,7 +3,7 @@
 #include "PhysicsFunctions.h"
 
 
-WorldState ParticleIntegratorBase::GetNextSimulationStep(const WorldState& CurrentWorldState, float deltaSeconds)
+WorldState ParticleIntegratorBase::GetNextSimulationStep(const WorldState& CurrentWorldState, double deltaSeconds)
 {
 	return CurrentWorldState;
 }
