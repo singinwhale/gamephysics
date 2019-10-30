@@ -11,6 +11,8 @@ const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
 
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
+	m_hasBoudaries = false;
+	m_hasFloor = false;
 	m_bounceRatio = 1.0;
 	m_fMass = 1.0;
 	m_externalForce = Vec3(0, -9.81, 0);
@@ -45,11 +47,11 @@ void TW_CALL MassSpringSystemSimulator::handleAddRope(void* simulator)
 	for (size_t i = 1; i <= ropePartsCount; i++)
 	{
 		size_t newIndex = sim->addMassPoint(Vec3(0.1,2.0-i*0.1,0.2), Vec3(), false);
-		sim->addSpring(index, newIndex, 1.0);
+		sim->addSpring(index, newIndex, 0.1);
 		index = newIndex;
 	}
 	sim->setMass(10.0);
-	sim->setStiffness(4);
+	sim->setStiffness(40);
 }
 
 void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
@@ -72,8 +74,8 @@ void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* 
 	auto z2 = static_cast<float>(rand()) / RAND_MAX;
 
 
-	sim->addMassPoint(Vec3(x1, x3, z1), Vec3(0.0, 0.0, 0.0),true);
-	sim->addMassPoint(Vec3(x2, x3+0.2, z2), Vec3(0.0, 0.0, 0.0), true);
+	sim->addMassPoint(Vec3(x1, x3, z1), Vec3(0.0, 0.0, 0.0),false);
+	sim->addMassPoint(Vec3(x2, x3+0.2, z2), Vec3(0.0, 0.0, 0.0), false);
 	//sim->addSpring(index, index+1, 0.5);
 	std::cout << "Add random string " << x1 << " - " << x2 << std::endl;
 }
