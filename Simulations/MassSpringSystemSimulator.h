@@ -28,6 +28,8 @@ public:
 	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
+
+	static void TW_CALL handleAddRope(void* simulator);
 	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
 	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);
@@ -71,6 +73,9 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+
+	bool m_hasFloor;
+	bool m_hasBoudaries;
 
 	// Simulation State
 	WorldState m_worldState;

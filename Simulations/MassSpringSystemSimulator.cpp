@@ -3,6 +3,8 @@
 #include "EulerParticleIntegrator.h"
 #include "MidpointParticleIntegrator.h"
 
+#include <limits>
+
 //Vec3::ZERO is not defined in this compile unit so we create our own definition
 const vector3Dim<double>  vector3Dim<double>::ZERO = Vec3(0, 0, 0);
 const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
@@ -32,10 +34,27 @@ void MassSpringSystemSimulator::reset(){
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
+void TW_CALL MassSpringSystemSimulator::handleAddRope(void* simulator)
+{
+	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+
+	
+	size_t ropePartsCount = 1;
+	size_t index = sim->addMassPoint(Vec3(0,2.0,0), Vec3(0.0, 0.0, 0.0), true);
+	for (size_t i = 1; i <= ropePartsCount; i++)
+	{
+		size_t newIndex = sim->addMassPoint(Vec3(0,2.0-i*0.1,0.0), Vec3(), false);
+		sim->addSpring(index, newIndex, 1.0);
+		index = newIndex;
+	}
+	sim->setMass(10.0);
+	sim->setStiffness(4);
+}
+
 void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
 {
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
-	
+
 	auto index = sim->getNumberOfMassPoints();
 	if (index == 0)
 	{
@@ -48,8 +67,12 @@ void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* 
 	auto x3 = static_cast<float>(rand()) / RAND_MAX;
 
 
-	sim->addMassPoint(Vec3(x1, x3, 0.0), Vec3(0.0, 0.0, 0.0),true);
-	sim->addMassPoint(Vec3(x2, x3+0.2, 0.0), Vec3(0.0, 0.0, 0.0), true);
+	auto z1 = static_cast<float>(rand()) / RAND_MAX;
+	auto z2 = static_cast<float>(rand()) / RAND_MAX;
+
+
+	sim->addMassPoint(Vec3(x1, x3, z1), Vec3(0.0, 0.0, 0.0),true);
+	sim->addMassPoint(Vec3(x2, x3+0.2, z2), Vec3(0.0, 0.0, 0.0), true);
 	//sim->addSpring(index, index+1, 0.5);
 	std::cout << "Add random string " << x1 << " - " << x2 << std::endl;
 }
@@ -78,7 +101,11 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 
+	TwAddButton(DUC->g_pTweakBar, "Add rope", &MassSpringSystemSimulator::handleAddRope, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");
+	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
+	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
+	
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3D, &MassSpringSystemSimulator::handleGravityChanged, &MassSpringSystemSimulator::twGetGravityCallback, this, "");
 	switch (m_iTestCase)
 	{
@@ -138,6 +165,32 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 	}
 }
 
+template<typename T>
+T clamp(T input, T min, T max)
+{
+	if (input < min)
+		return min;
+	if (input > max)
+		return max;
+	return input;
+}
+
+template<typename T>
+bool clampWithDetection(T& input, T min, T max)
+{
+	if (input < min)
+	{
+		input = min;
+		return true;
+	}
+	if (input > max)
+	{
+		input = max;
+		return true;
+	}
+	return false;
+}
+
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
 	// update current setup for each frame
@@ -145,6 +198,36 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	currentIntegrator->ResetGlobalForces();
 	currentIntegrator->AddGlobalForce(m_externalForce);
 	m_worldState = currentIntegrator->GetNextSimulationStep(m_worldState, timeStep);
+
+	// Add floor as collision => clamp all Y components to <0,infty>
+	const auto INFTY = std::numeric_limits<float>::infinity();
+	if (m_hasFloor || m_hasBoudaries)
+	{
+		for (auto& particle : m_worldState.particles)
+		{
+			particle.position.y = clamp<float>(particle.position.y, -1.0, INFTY);
+		}
+	}
+
+	if (m_hasBoudaries)
+	{
+		static float leftPlane = -1;
+		static float rightPlane = 1;
+		static float frontPlane = 1;
+		static float rearPlane = -1;
+
+		for (auto& particle : m_worldState.particles)
+		{
+			if (clampWithDetection<GamePhysics::Real>(particle.position.x, leftPlane, rightPlane))
+			{
+				particle.velocity.x = 0.0;
+			}
+			if (clampWithDetection<GamePhysics::Real>(particle.position.z, rearPlane, frontPlane))
+			{
+				particle.velocity.z = 0.0;
+			}
+		}
+	}
 }
 
 /*
@@ -265,9 +348,9 @@ void MassSpringSystemSimulator::renderWorldParticles(const WorldState & world)
 	{
 		auto& particle = world.particles[index];
 
-		auto position = DirectX::XMVectorSet(particle.position.x, particle.position.y, particle.position.z,1.0);
+		auto position = DirectX::XMVectorSet(particle.position.x, particle.position.y, particle.position.z, 1.0);
 		auto scale = DirectX::XMVectorSet(particle.mass, particle.mass, particle.mass, 1.0);
-		scale = DirectX::XMVectorScale(scale, 0.1);
+		scale = DirectX::XMVectorScale(scale, 0.01);
 		Vec3 color = Vec3(1.0);
 		if (m_selectedParticle == index)
 		{
@@ -275,6 +358,44 @@ void MassSpringSystemSimulator::renderWorldParticles(const WorldState & world)
 		}
 		DUC->setUpLighting(Vec3(), 0.4*Vec3(1, 1, 1), 100, color);
 		this->DUC->drawSphere(position, scale);
+	}
+
+	for (auto& spring : world.springs)
+	{
+		auto& p1 = world.particles[spring.startParticle];
+		auto& p2 = world.particles[spring.endParticle];
+
+		// Detect line length 
+		auto lineLength = norm(p1.position - p2.position);
+		auto ratio = lineLength / spring.restLength;
+		// Map line length to line color
+		// - close to 0 => red
+		// - close to 1 => white
+		// - close to 2 => blue
+		static Vec3 red = Vec3(1.0, 0.0, 0.0);
+		static Vec3 white = Vec3(1.0, 1.0, 1.0);
+		static Vec3 blue = Vec3(0.0, 0.0, 1.0);
+		Vec3 color = Vec3();
+		if (ratio > 2.0)
+		{	// clamp at <0.0,2.0>
+			ratio = 2.0;
+		}
+		// Hack: non-lineary ehance red/blue color compared to white
+		float nonLinearRatio = 4.0;
+		if (ratio <= 1.0)
+		{
+			ratio = pow(ratio, nonLinearRatio);
+			color = red * (1.0 - ratio) + white * ratio;
+		}
+		else {
+			ratio -= 1.0;
+			ratio = pow(ratio, 1.0 / nonLinearRatio);
+			color = white * (1.0 - ratio) + blue * ratio;
+		}
+
+		this->DUC->beginLine();
+		this->DUC->drawLine(p1.position, color, p2.position, color);
+		this->DUC->endLine();
 	}
 }
 
