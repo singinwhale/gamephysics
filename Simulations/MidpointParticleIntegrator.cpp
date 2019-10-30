@@ -35,6 +35,10 @@ WorldState MidpointParticleIntegrator::GetNextSimulationStep(const WorldState& C
 	for (size_t i = 0; i < localState.particles.size(); ++i)
 	{
 		Particle& localParticle = localState.particles[i];
+
+		if(localParticle.isFixed)
+			continue;
+		
 		const Particle& midpointParticle = midPointState.particles[i];
 
 		const Vec3 midpointAcceleration = midpointParticle.force / midpointParticle.mass;
