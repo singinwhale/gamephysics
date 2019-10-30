@@ -11,6 +11,7 @@ const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
 
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
+	m_bounceRatio = 1.0;
 	m_fMass = 1.0;
 	m_externalForce = Vec3(0, -9.81, 0);
 
@@ -39,11 +40,11 @@ void TW_CALL MassSpringSystemSimulator::handleAddRope(void* simulator)
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
 
 	
-	size_t ropePartsCount = 1;
+	size_t ropePartsCount = 3;
 	size_t index = sim->addMassPoint(Vec3(0,2.0,0), Vec3(0.0, 0.0, 0.0), true);
 	for (size_t i = 1; i <= ropePartsCount; i++)
 	{
-		size_t newIndex = sim->addMassPoint(Vec3(0,2.0-i*0.1,0.0), Vec3(), false);
+		size_t newIndex = sim->addMassPoint(Vec3(0.1,2.0-i*0.1,0.2), Vec3(), false);
 		sim->addSpring(index, newIndex, 1.0);
 		index = newIndex;
 	}
@@ -103,6 +104,7 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 
 	TwAddButton(DUC->g_pTweakBar, "Add rope", &MassSpringSystemSimulator::handleAddRope, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");
+	TwAddVarRW(DUC->g_pTweakBar, "Bounce ratio", TW_TYPE_FLOAT, &m_bounceRatio, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
 	
@@ -201,11 +203,14 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 
 	// Add floor as collision => clamp all Y components to <0,infty>
 	const auto INFTY = std::numeric_limits<float>::infinity();
-	if (m_hasFloor || m_hasBoudaries)
+	if (m_hasFloor)
 	{
 		for (auto& particle : m_worldState.particles)
 		{
-			particle.position.y = clamp<float>(particle.position.y, -1.0, INFTY);
+			if (clampWithDetection<GamePhysics::Real>(particle.position.y, -1.0, INFTY))
+			{
+				particle.velocity.y *= -m_bounceRatio;
+			}
 		}
 	}
 
@@ -220,11 +225,11 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		{
 			if (clampWithDetection<GamePhysics::Real>(particle.position.x, leftPlane, rightPlane))
 			{
-				particle.velocity.x = 0.0;
+				particle.velocity.x *= -m_bounceRatio;
 			}
 			if (clampWithDetection<GamePhysics::Real>(particle.position.z, rearPlane, frontPlane))
 			{
-				particle.velocity.z = 0.0;
+				particle.velocity.z *= -m_bounceRatio;
 			}
 		}
 	}
