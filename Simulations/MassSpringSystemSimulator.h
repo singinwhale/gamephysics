@@ -28,6 +28,9 @@ public:
 	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
+	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
+	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
+	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);
 
 	// Specific Functions
 	void setMass(float mass);

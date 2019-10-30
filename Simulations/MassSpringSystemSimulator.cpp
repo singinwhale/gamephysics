@@ -10,6 +10,8 @@ const vector3Dim<float>  vector3Dim<float>::ZERO = vector3Dim(0, 0, 0);
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_fMass = 1.0;
+	m_externalForce = Vec3(0, -9.81, 0);
+
 	m_iTestCase = EULER;
 	m_iIntegrator = EULER;
 	m_particleIntegrators[EULER] = std::make_unique<EulerParticleIntegrator>();
@@ -30,7 +32,7 @@ void MassSpringSystemSimulator::reset(){
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
-void TW_CALL callbackAddButton(void* simulator)
+void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
 {
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
 	
@@ -52,11 +54,32 @@ void TW_CALL callbackAddButton(void* simulator)
 	std::cout << "Add random string " << x1 << " - " << x2 << std::endl;
 }
 
+void TW_CALL MassSpringSystemSimulator::handleGravityChanged(const void* newValue, void* userData)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
+	const double* newVector = reinterpret_cast<const double*>(newValue);
+	for (char i = 0; i < 3; ++i)
+	{
+		sim->m_externalForce[i] = newVector[i];
+	}
+}
+
+void MassSpringSystemSimulator::twGetGravityCallback(void* targetValue, void* userData)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
+	double* targetVector = reinterpret_cast<double*>(targetValue);
+	for (char i = 0; i < 3; ++i)
+	{
+		targetVector[i] = sim->m_externalForce[i];
+	}
+}
+
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 
-	TwAddButton(DUC->g_pTweakBar,"Add random point", &callbackAddButton, this, "");
+	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");
+	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3D, &MassSpringSystemSimulator::handleGravityChanged, &MassSpringSystemSimulator::twGetGravityCallback, this, "");
 	switch (m_iTestCase)
 	{
 	case 0:break;
@@ -71,6 +94,8 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
+	if (m_iTestCase == testCase)
+		return;
 	cout << "Testcase changed to: ";
 	m_iTestCase = testCase;
 	setIntegrator(m_iTestCase);
@@ -116,21 +141,10 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
 	// update current setup for each frame
-	switch (m_iTestCase)
-	{// handling different cases
-	case EULER:
-		break;
-	case LEAPFROG:
-		// not implemented
-		break;
-	case MIDPOINT:
-		cout << "Midpoint !\n";
-		break;
-	default:
-		cout << "Undefined Testcase!\n";
-		break;
-	}
-	m_worldState = m_particleIntegrators[m_iIntegrator]->GetNextSimulationStep(m_worldState, timeStep);
+	auto& currentIntegrator = m_particleIntegrators[m_iIntegrator];
+	currentIntegrator->ResetGlobalForces();
+	currentIntegrator->AddGlobalForce(m_externalForce);
+	m_worldState = currentIntegrator->GetNextSimulationStep(m_worldState, timeStep);
 }
 
 /*
