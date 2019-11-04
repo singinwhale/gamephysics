@@ -40,7 +40,11 @@ struct Spring
 	Vec3 force = Vec3::ZERO;
 
 	Spring(ParticleHandle start, ParticleHandle end, double length, double inStiffness);
+	Spring() = default;
 };
+
+bool operator==(const Spring& A, const Spring& B);
+bool operator<(const Spring& A, const Spring& B);
 
 
 struct WorldState

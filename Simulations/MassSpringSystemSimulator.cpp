@@ -4,6 +4,8 @@
 #include "MidpointParticleIntegrator.h"
 
 #include <limits>
+#include <unordered_set>
+#include <set>
 
 //Vec3::ZERO is not defined in this compile unit so we create our own definition
 const vector3Dim<double>  vector3Dim<double>::ZERO = Vec3(0, 0, 0);
@@ -55,6 +57,48 @@ void TW_CALL MassSpringSystemSimulator::handleAddRope(void* simulator)
 	sim->setStiffness(40);
 }
 
+void MassSpringSystemSimulator::handleAddIcosphere(void* simulator)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+
+#include "models/icosphere.inl"
+
+	size_t massPointIndexBias = sim->m_worldState.particles.size();
+
+	std::vector<Particle> particles;
+
+	for(Vec3 vertexPosition : vertices)
+	{
+		vertexPosition = vertexPosition * .1;
+		Particle p = Particle(vertexPosition);
+		p.mass = sim->m_fMass;
+		particles.push_back(p);
+	}
+
+	sim->m_worldState.particles.insert(sim->m_worldState.particles.end(), particles.begin(), particles.end());
+
+	//std::set<Spring> springs;
+	std::vector<Spring> springs;
+	
+	for(size_t i = 0; i < edges.size(); i+=3)
+	{
+		for (size_t j = 0; j < 3; ++j)
+		{
+			Spring spring = Spring();
+			spring.stiffness = sim->m_fStiffness;
+
+			// deduct one because vertex indizes start at 1
+			spring.startParticle = edges[i + (j == 0 ? 2 : (j - 1))] + massPointIndexBias - 1;
+			spring.endParticle = edges[i + j] + massPointIndexBias - 1;
+			spring.restLength = norm(sim->m_worldState.particles[spring.startParticle].position - sim->m_worldState.particles[spring.endParticle].position);
+			//springs.insert(spring);
+			springs.push_back(spring);
+		}
+	}
+
+	sim->m_worldState.springs.insert(sim->m_worldState.springs.end(), springs.begin(), springs.end());
+}
+
 void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
 {
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
@@ -99,6 +143,22 @@ void MassSpringSystemSimulator::twGetGravityCallback(void* targetValue, void* us
 	{
 		targetVector[i] = sim->m_externalForce[i];
 	}
+}
+
+void MassSpringSystemSimulator::twSetDampingCallback(const void* targetValue, void* userData)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
+	const double* dampingValue = reinterpret_cast<const double*>(targetValue);
+
+	sim->setDampingFactor(*dampingValue);
+}
+
+void MassSpringSystemSimulator::twGetDampingCallback(void* targetValue, void* userData)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
+	double* dampingValue = reinterpret_cast<double*>(targetValue);
+	
+	*dampingValue = sim->m_fDamping;
 }
 
 void TW_CALL MassSpringSystemSimulator::handlePositionChanged(const void* newValue, void* userData)
@@ -147,6 +207,7 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 
 	TwAddButton(DUC->g_pTweakBar, "Add rope", &MassSpringSystemSimulator::handleAddRope, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");
+	TwAddButton(DUC->g_pTweakBar,"Add icosphere", &MassSpringSystemSimulator::handleAddIcosphere, this, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Bounce ratio", TW_TYPE_FLOAT, &m_bounceRatio, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
@@ -154,6 +215,7 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	TwAddVarCB(DUC->g_pTweakBar, "Point position", TW_TYPE_DIR3D, &MassSpringSystemSimulator::handlePositionChanged, &MassSpringSystemSimulator::twGetPositionChangedCallback, this, "");
 	
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3D, &MassSpringSystemSimulator::handleGravityChanged, &MassSpringSystemSimulator::twGetGravityCallback, this, "");
+	TwAddVarCB(DUC->g_pTweakBar, "Damping", TW_TYPE_DOUBLE, &MassSpringSystemSimulator::twSetDampingCallback, &MassSpringSystemSimulator::twGetDampingCallback, this, "");
 	switch (m_iTestCase)
 	{
 	case 0:break;
@@ -478,6 +540,7 @@ void MassSpringSystemSimulator::setStiffness(float stiffness)
 
 void MassSpringSystemSimulator::setDampingFactor(float damping)
 {
+	m_fDamping = damping;
 	m_particleIntegrators[m_iIntegrator]->SetDampingFactor(damping);
 }
 

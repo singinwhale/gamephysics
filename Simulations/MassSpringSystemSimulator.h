@@ -30,9 +30,12 @@ public:
 	void onMouse(int x, int y);
 
 	static void TW_CALL handleAddRope(void* simulator);
+	static void TW_CALL handleAddIcosphere(void* simulator);
 	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
 	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);
+	static void TW_CALL twSetDampingCallback(const void* targetValue, void* userData);
+	static void TW_CALL twGetDampingCallback(void* targetValue, void* userData);
 
 	static void TW_CALL handlePositionChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetPositionChangedCallback(void* targetValue, void* userData);
@@ -66,10 +69,10 @@ public:
 
 private:
 	// Data Attributes
-	float m_fMass;
-	float m_fStiffness;
-	float m_fDamping;
-	int m_iIntegrator;
+	float m_fMass = 10;
+	float m_fStiffness = 40;
+	float m_fDamping = 0;
+	int m_iIntegrator = 0;
 
 	// UI Attributes
 	Vec3 m_externalForce = Vec3::ZERO;

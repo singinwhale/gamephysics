@@ -30,3 +30,21 @@ Spring::Spring(ParticleHandle start, ParticleHandle end, double length, double i
 	, stiffness(inStiffness)
 {
 }
+
+bool operator==(const Spring& A, const Spring& B)
+{
+	if (A.startParticle == B.startParticle && A.endParticle == B.endParticle)
+		return true;
+	if (A.startParticle == B.endParticle && A.endParticle == B.endParticle)
+		return true;
+	return false;
+}
+
+bool operator<(const Spring& A, const Spring& B)
+{
+	if (A.startParticle < B.startParticle && A.endParticle < B.endParticle)
+		return true;
+	if (A.startParticle < B.endParticle && A.endParticle < B.endParticle)
+		return true;
+	return false;
+}
