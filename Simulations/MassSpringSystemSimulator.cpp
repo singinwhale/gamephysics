@@ -40,6 +40,57 @@ void MassSpringSystemSimulator::reset(){
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
+void doDemo(size_t integratorType)
+{
+	auto& newSim = MassSpringSystemSimulator();
+
+	newSim.setMass(10);
+	newSim.addMassPoint(Vec3(0, 0.0, 0), Vec3(-1.0, 0.0, 0.0), false);
+	newSim.addMassPoint(Vec3(0, 2.0, 0), Vec3(1.0, 0.0, 0.0), false);
+	newSim.setStiffness(40);
+	newSim.addSpring(0, 1, 1.0);
+	newSim.setIntegrator(integratorType);
+
+	std::cout << "=============================================================" << std::endl;
+	std::cout << "Using integrator: " << integratorType << std::endl;
+	auto printVector = [](std::string component, Vec3& pt)
+	{
+		std::cout << component << ": [" << pt[0] << "," << pt[1] << "," << pt[2] << "]" << std::endl;
+	};
+	auto printPoint = [&](size_t id)
+	{
+		std::cout << "Point " << id << std::endl;
+		auto pt = newSim.getPositionOfMassPoint(id);
+		printVector("Position", pt);
+		auto vc = newSim.getVelocityOfMassPoint(id);
+		printVector("Velocity", vc);
+	};
+
+	std::cout << "Iteration 0" << std::endl;
+	printPoint(0);
+	printPoint(1);
+	std::cout << "Iteration 1" << std::endl;
+	newSim.simulateTimestep(0.005);
+	printPoint(0);
+	printPoint(1);
+}
+
+void TW_CALL MassSpringSystemSimulator::demo2(void* simulator)
+{
+	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+	doDemo(EULER);
+}
+
+void TW_CALL MassSpringSystemSimulator::demo3(void* simulator)
+{
+	doDemo(MIDPOINT);
+}
+
+void TW_CALL MassSpringSystemSimulator::demo5(void* simulator)
+{
+	doDemo(LEAPFROG);
+}
+
 void TW_CALL MassSpringSystemSimulator::handleAddRope(void* simulator)
 {
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
@@ -204,6 +255,10 @@ void MassSpringSystemSimulator::twGetPositionChangedCallback(void* targetValue, 
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
+
+	TwAddButton(DUC->g_pTweakBar, "Demo 2", &MassSpringSystemSimulator::demo2, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Demo 3", &MassSpringSystemSimulator::demo3, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Demo 5", &MassSpringSystemSimulator::demo5, this, "");
 
 	TwAddButton(DUC->g_pTweakBar, "Add rope", &MassSpringSystemSimulator::handleAddRope, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");

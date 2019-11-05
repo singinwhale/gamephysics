@@ -29,6 +29,9 @@ public:
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
 
+	static void TW_CALL demo2(void* simulator);
+	static void TW_CALL demo3(void* simulator);
+	static void TW_CALL demo5(void* simulator);
 	static void TW_CALL handleAddRope(void* simulator);
 	static void TW_CALL handleAddIcosphere(void* simulator);
 	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
