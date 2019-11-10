@@ -101,11 +101,11 @@ void TW_CALL MassSpringSystemSimulator::handleAddRope(void* simulator)
 	for (size_t i = 1; i <= ropePartsCount; i++)
 	{
 		size_t newIndex = sim->addMassPoint(Vec3(0.1,2.0-i*0.1,0.2), Vec3(), false);
-		sim->addSpring(index, newIndex, 0.1);
+		sim->m_worldState.particles[newIndex].mass = 10.f;
+		Spring& spring = sim->addSpring(index, newIndex, 0.1);
+		spring.stiffness = 40;
 		index = newIndex;
 	}
-	sim->setMass(10.0);
-	sim->setStiffness(40);
 }
 
 void MassSpringSystemSimulator::handleAddIcosphere(void* simulator)
@@ -176,14 +176,13 @@ void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* 
 	std::cout << "Add random string " << x1 << " - " << x2 << std::endl;
 }
 
+
 void TW_CALL MassSpringSystemSimulator::handleGravityChanged(const void* newValue, void* userData)
 {
 	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
-	const double* newVector = reinterpret_cast<const double*>(newValue);
-	for (char i = 0; i < 3; ++i)
-	{
-		sim->m_externalForce[i] = newVector[i];
-	}
+	Vec3 newVector = Vec3::ZERO;
+	memcpy(&newVector.value, newValue, sizeof(Real) * 3);
+	sim->applyExternalForce(newVector);
 }
 
 void MassSpringSystemSimulator::twGetGravityCallback(void* targetValue, void* userData)
@@ -256,9 +255,20 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 
-	TwAddButton(DUC->g_pTweakBar, "Demo 2", &MassSpringSystemSimulator::demo2, this, "");
-	TwAddButton(DUC->g_pTweakBar, "Demo 3", &MassSpringSystemSimulator::demo3, this, "");
-	TwAddButton(DUC->g_pTweakBar, "Demo 5", &MassSpringSystemSimulator::demo5, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Use physically based values", [](void* s)
+	{
+		auto sim = (MassSpringSystemSimulator*)s;
+		sim->m_externalForce = Vec3(0, -9.81, 0);
+		sim->applyExternalForce(sim->m_externalForce);
+		sim->setDampingFactor(1);
+		sim->m_hasBoudaries = true;
+		sim->m_hasFloor = true;
+		sim->m_bounceRatio = 0.9;
+	}, this, "");
+	
+	TwAddButton(DUC->g_pTweakBar, "Print Demo 2", &MassSpringSystemSimulator::demo2, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Print Demo 3", &MassSpringSystemSimulator::demo3, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Print Demo 5", &MassSpringSystemSimulator::demo5, this, "");
 
 	TwAddButton(DUC->g_pTweakBar, "Add rope", &MassSpringSystemSimulator::handleAddRope, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");
@@ -374,7 +384,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	{
 		for (auto& particle : m_worldState.particles)
 		{
-			if (clampWithDetection<GamePhysics::Real>(particle.position.y, -1.0, INFTY))
+			if (clampWithDetection<GamePhysics::Real>(particle.position.y, -0.5, INFTY))
 			{
 				particle.velocity.y *= -m_bounceRatio;
 			}
@@ -605,9 +615,10 @@ int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool i
 	return m_worldState.particles.size() - 1;
 }
 
-void MassSpringSystemSimulator::addSpring(int masspoint1, int masspoint2, float initialLength)
+Spring& MassSpringSystemSimulator::addSpring(int masspoint1, int masspoint2, float initialLength)
 {
 	m_worldState.springs.push_back(Spring(ParticleHandle(masspoint1), ParticleHandle(masspoint2), initialLength, m_fStiffness));
+	return m_worldState.springs.back();
 }
 
 int MassSpringSystemSimulator::getNumberOfMassPoints()
