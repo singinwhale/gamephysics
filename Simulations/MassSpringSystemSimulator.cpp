@@ -6,6 +6,7 @@
 #include <limits>
 #include <unordered_set>
 #include <set>
+#include "LeapfrogParticleIntegrator.h"
 
 //Vec3::ZERO is not defined in this compile unit so we create our own definition
 const vector3Dim<double>  vector3Dim<double>::ZERO = Vec3(0, 0, 0);
@@ -21,7 +22,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_iTestCase = EULER;
 	m_iIntegrator = EULER;
 	m_particleIntegrators[EULER] = std::make_unique<EulerParticleIntegrator>();
-	m_particleIntegrators[LEAPFROG] = std::make_unique<EulerParticleIntegrator>();
+	m_particleIntegrators[LEAPFROG] = std::make_unique<LeapfrogParticleIntegrator>();
 	m_particleIntegrators[MIDPOINT] = std::make_unique<MidpointParticleIntegrator>();
 }
 
@@ -311,7 +312,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		cout << "Euler !\n";
 		break;
 	case LEAPFROG:
-		cout << "Leapfrog (not implemented. using euler instead)!\n";
+		cout << "Leapfrog!\n";
 		break;
 	case MIDPOINT:
 		cout << "Midpoint !\n";

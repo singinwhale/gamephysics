@@ -19,6 +19,11 @@
     <ClCompile Include="EulerParticleIntegrator.cpp">
       <Filter>Integrators</Filter>
     </ClCompile>
+    <ClCompile Include="MassSpringSystemSimulator.cpp" />
+    <ClCompile Include="ParticleSimulationTypes.cpp" />
+    <ClCompile Include="LeapfrogParticleIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DrawingUtilitiesClass.h" />
@@ -41,6 +46,11 @@
       <Filter>Integrators</Filter>
     </ClInclude>
     <ClInclude Include="EulerParticleIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSimulationTypes.h" />
+    <ClInclude Include="PhysicsFunctions.h" />
+    <ClInclude Include="LeapfrogParticleIntegrator.h">
       <Filter>Integrators</Filter>
     </ClInclude>
   </ItemGroup>
