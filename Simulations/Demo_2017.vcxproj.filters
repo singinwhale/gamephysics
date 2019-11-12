@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <FxCompile Include="effect.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TemplateSimulator.cpp" />
+    <ClCompile Include="util\FFmpeg.cpp" />
+    <ClCompile Include="util\util.cpp" />
+    <ClCompile Include="MidpointParticleIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleIntegratorBase.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="IParticleIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="EulerParticleIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="MassSpringSystemSimulator.cpp" />
+    <ClCompile Include="ParticleSimulationTypes.cpp" />
+    <ClCompile Include="LeapfrogParticleIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DrawingUtilitiesClass.h" />
+    <ClInclude Include="MassSpringSystemSimulator.h" />
+    <ClInclude Include="Simulator.h" />
+    <ClInclude Include="TemplateSimulator.h" />
+    <ClInclude Include="util\FFmpeg.h" />
+    <ClInclude Include="util\matrixbase.h" />
+    <ClInclude Include="util\quaternion.h" />
+    <ClInclude Include="util\timer.h" />
+    <ClInclude Include="util\util.h" />
+    <ClInclude Include="util\vectorbase.h" />
+    <ClInclude Include="MidpointParticleIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleIntegratorBase.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="IParticleIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="EulerParticleIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSimulationTypes.h" />
+    <ClInclude Include="PhysicsFunctions.h" />
+    <ClInclude Include="LeapfrogParticleIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Integrators">
+      <UniqueIdentifier>{ebb5c64f-fd42-44bf-8397-d3452b8730e6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
