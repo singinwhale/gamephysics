@@ -6,6 +6,8 @@
 
 #define TESTCASEUSEDTORUNTEST 2
 
+class RigidBodySystem;
+
 class RigidBodySystemSimulator:public Simulator{
 public:
 	// Construtors
@@ -34,13 +36,14 @@ public:
 
 private:
 	// Attributes
-	// add your RigidBodySystem data members, for e.g.,
-	// RigidBodySystem * m_pRigidBodySystem; 
+	std::unique_ptr<RigidBodySystem> m_pRigidBodySystem; 
 	Vec3 m_externalForce;
 
 	// UI Attributes
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+
+	float m_defaultBoxSize[3] = { 0.1, 0.1, 0.1 };
 	};
 #endif

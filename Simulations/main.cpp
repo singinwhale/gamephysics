@@ -21,8 +21,8 @@ using namespace GamePhysics;
 //#define ADAPTIVESTEP
 
 //#define TEMPLATE_DEMO
-#define MASS_SPRING_SYSTEM
-//#define RIGID_BODY_SYSTEM
+//#define MASS_SPRING_SYSTEM
+#define RIGID_BODY_SYSTEM
 //#define SPH_SYSTEM
 
 #ifdef TEMPLATE_DEMO
@@ -32,7 +32,7 @@ using namespace GamePhysics;
 #include "MassSpringSystemSimulator.h"
 #endif
 #ifdef RIGID_BODY_SYSTEM
-//#include "RigidBodySystemSimulator.h"
+#include "RigidBodySystemSimulator.h"
 #endif
 #ifdef SPH_SYSTEM
 //#include "SPHSystemSimulator.h"
@@ -300,12 +300,12 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 	ID3D11DepthStencilView* pDSV = DXUTGetD3D11DepthStencilView();
 	pd3dImmediateContext->ClearRenderTargetView( pRTV, ClearColor );
 	pd3dImmediateContext->ClearDepthStencilView( pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-
+	
     // Draw floor
     g_pDUC->DrawFloor(pd3dImmediateContext);
 
     // Draw axis box
-     g_pDUC->DrawBoundingBox(pd3dImmediateContext);
+    g_pDUC->DrawBoundingBox(pd3dImmediateContext);
 
 	// Draw Simulator
 	if(g_bDraw)g_pSimulator->drawFrame(pd3dImmediateContext);
@@ -365,7 +365,7 @@ int main(int argc, char* argv[])
 	g_pSimulator= new MassSpringSystemSimulator();
 #endif
 #ifdef RIGID_BODY_SYSTEM
-	//g_pSimulator= new RigidBodySystemSimulator();
+	g_pSimulator= new RigidBodySystemSimulator();
 #endif
 #ifdef SPH_SYSTEM
 	//g_pSimulator= new SPHSystemSimulator();

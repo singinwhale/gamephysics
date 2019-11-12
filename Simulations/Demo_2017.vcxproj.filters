@@ -24,6 +24,9 @@
     <ClCompile Include="LeapfrogParticleIntegrator.cpp">
       <Filter>Integrators</Filter>
     </ClCompile>
+    <ClCompile Include="RigidBodySystemSimulator.cpp" />
+    <ClCompile Include="RigidBodySimulationTypes.cpp" />
+    <ClCompile Include="RigidBodySystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DrawingUtilitiesClass.h" />
@@ -53,6 +56,10 @@
     <ClInclude Include="LeapfrogParticleIntegrator.h">
       <Filter>Integrators</Filter>
     </ClInclude>
+    <ClInclude Include="RigidBodySystemSimulator.h" />
+    <ClInclude Include="RigidBodySimulationTypes.h" />
+    <ClInclude Include="collisionDetect.h" />
+    <ClInclude Include="RigidBodySystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\readme.txt" />

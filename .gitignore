@@ -1,6 +1,6 @@
 #visual studio project files
 /.vs
-*.vcxproj
+*.vcxproj.user
 
 
 #debug files
