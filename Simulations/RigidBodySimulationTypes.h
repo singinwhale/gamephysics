@@ -11,7 +11,7 @@ class Box
 {
 public:
 	Vec3 m_position = Vec3::ZERO;
-	Quaternion<double> m_rotation = Quaternion<double>();
+	Quaternion<double> m_rotation = Quaternion<double>(Vec3(1.0,0.0,0.0),0);
 	Vec3 m_extents = Vec3(1,1,1);
 	Vec3 m_velocity = Vec3::ZERO;
 	Vec3 m_angularvelocity = Vec3::ZERO;

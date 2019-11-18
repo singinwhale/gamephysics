@@ -30,9 +30,12 @@ public:
 	Vec3 getLinearVelocityOfRigidBody(int i);
 	Vec3 getAngularVelocityOfRigidBody(int i);
 	void applyForceOnBody(int i, Vec3 loc, Vec3 force);
-	void addRigidBody(Vec3 position, Vec3 size, int mass);
+	void addRigidBody(Vec3 position, Vec3 size, int mass = 1.0);
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
+
+	void setConstantForce(Vec3 force);
+	Vec3 getConstantForce() const;
 
 private:
 	// Attributes

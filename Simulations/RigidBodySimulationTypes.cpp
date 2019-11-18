@@ -3,11 +3,13 @@
 
 Box::Box()
 {
+	this->initialize();
 }
 
 Box::Box(Vec3 position)
 	: m_position(position)
 {
+	this->initialize();
 }
 
 Box::Box(Vec3 position, Vec3 size)
@@ -34,8 +36,9 @@ Mat4 Box::asMatrix() const
 
 void Box::initialize()
 {
+	std::cout << "Box::initialize()" << std::endl;
 	auto points = std::vector<Vec3>{};
-	auto oneAndZero = std::vector<float>{0.0f,1.0f};
+	auto oneAndZero = std::vector<float>{-1.0f,1.0f};
 	for (auto& x: oneAndZero)
 	{
 		for (auto& y : oneAndZero)
@@ -59,14 +62,16 @@ void Box::initialize()
 
 		tTranspose = t;
 		t.transpose();
-		t = tTranspose*t;
+		t = t * tTranspose;
 		covariance += t * mass;
+
+		//std::cout << covariance << std::endl;
 	}
-	double trace = covariance.value[1][1] + covariance.value[2][2] + covariance.value[3][3];
+	double trace = covariance.value[0][0] + covariance.value[1][1] + covariance.value[2][2];
 	Mat4d traceMat;
+	traceMat.value[0][0] = trace;
 	traceMat.value[1][1] = trace;
 	traceMat.value[2][2] = trace;
-	traceMat.value[3][3] = trace;
 	m_inertiaTensorInverse = traceMat - covariance;
-
+	std::cout << "Inertia \n" << m_inertiaTensorInverse << std::endl;
 }

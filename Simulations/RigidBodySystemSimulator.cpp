@@ -25,7 +25,14 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	{
 		REINTERPRET_RBSS(rbss, data);
 		Vec3 size = Vec3(rbss->m_defaultBoxSize[0], rbss->m_defaultBoxSize[1], rbss->m_defaultBoxSize[2]);
-		rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
+		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
+		rbss->addRigidBody(Vec3::ZERO, size, 1.0);
+	}, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Toggle gravity", [](void* data)
+	{
+		REINTERPRET_RBSS(rbss, data);
+		bool hasGravity = (rbss->getConstantForce().squaredDistanceTo(Vec3(0.0)) > 0.0);
+		rbss->setConstantForce(hasGravity ? Vec3(0.0) : Vec3(0.0, -9.81, 0.0));
 	}, this, "");
 }
 
@@ -67,6 +74,7 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
 	//TODO
+	this->m_pRigidBodySystem->tick(timeStep);
 }
 
 void RigidBodySystemSimulator::onClick(int x, int y)
@@ -108,6 +116,9 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
 	m_pRigidBodySystem->m_rigid_bodies.push_back(Box(position, size, mass));
+	m_pRigidBodySystem->m_rigid_bodies.back().m_angularMomentum.x = 1.0;
+	m_pRigidBodySystem->m_rigid_bodies.back().m_angularMomentum.y = 2.0;
+	m_pRigidBodySystem->m_rigid_bodies.back().m_angularMomentum.z = 3.0;
 }
 
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)
@@ -118,4 +129,14 @@ void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)
 void RigidBodySystemSimulator::setVelocityOf(int i, Vec3 velocity)
 {
 	m_pRigidBodySystem->m_rigid_bodies[i].m_velocity = velocity;
+}
+
+void RigidBodySystemSimulator::setConstantForce(Vec3 force)
+{
+	m_pRigidBodySystem->m_constantForce = force;
+}
+
+Vec3 RigidBodySystemSimulator::getConstantForce() const
+{
+	return m_pRigidBodySystem->m_constantForce;
 }
