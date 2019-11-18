@@ -15,6 +15,8 @@ public:
 	Vec3 m_extents = Vec3(1,1,1);
 	Vec3 m_velocity = Vec3::ZERO;
 	Vec3 m_angularvelocity = Vec3::ZERO;
+	Vec3 m_angularMomentum = Vec3::ZERO;
+	Mat4d m_inertiaTensorInverse;
 	float m_mass = 1;
 	
 	Box();
@@ -23,5 +25,7 @@ public:
 	Box(Vec3 position, Vec3 size, float mass);
 	
 	Mat4 asMatrix() const;
+	/// Calculate constants
+	void initialize(); 
 };
 
