@@ -34,6 +34,20 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 		bool hasGravity = (rbss->getConstantForce().squaredDistanceTo(Vec3(0.0)) > 0.0);
 		rbss->setConstantForce(hasGravity ? Vec3(0.0) : Vec3(0.0, -9.81, 0.0));
 	}, this, "");
+
+	TwAddButton(DUC->g_pTweakBar, "Add left force to last object", [](void* data)
+	{
+		REINTERPRET_RBSS(rbss, data);
+		const auto count = rbss->getNumberOfRigidBodies();
+		rbss->applyForceOnBody(count - 1, Vec3(1.0, 0.0, 0.0), Vec3(0.0, 30.0, 0.0));
+	}, this, "");
+
+	TwAddButton(DUC->g_pTweakBar, "Add right force to last object", [](void* data)
+	{
+		REINTERPRET_RBSS(rbss, data);
+		const auto count = rbss->getNumberOfRigidBodies();
+		rbss->applyForceOnBody(count - 1, Vec3(-1.0, 0.0, 0.0), Vec3(0.0, 30.0, 0.0));
+	}, this, "");
 }
 
 void RigidBodySystemSimulator::reset()
@@ -110,7 +124,7 @@ Vec3 RigidBodySystemSimulator::getAngularVelocityOfRigidBody(int i)
 
 void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 {
-	//TODO
+	m_pRigidBodySystem->m_rigid_bodies[i].m_forceApplications.push_back(std::make_pair(loc, force));
 }
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)

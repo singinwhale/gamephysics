@@ -10,7 +10,6 @@ void RigidBodySystem::initialize()
 
 void RigidBodySystem::tick(float deltaSeconds)
 {
-	std::cout << "Update\n";
 	// I. integrate properties of rigid bodies
 	for (auto &body : m_rigid_bodies)
 	{
@@ -19,7 +18,16 @@ void RigidBodySystem::tick(float deltaSeconds)
 		Vec3 totalForce = m_constantForce;
 		// TODO: sum contribution of forces w.r.t mass points
 		Vec3 torque = Vec3(0.0);
+		
+		for (auto& application : body.m_forceApplications)
+		{
+			// position x force
+			torque += cross(application.first, application.second);
+		}
+		// Clear impulses
+		body.m_forceApplications.clear();
 
+		totalForce += torque;
 		std::cout << "Force: " << totalForce << " - " << torque << std::endl;
 
 		// Integrate linear parts

@@ -10,6 +10,9 @@ struct Force
 class Box
 {
 public:
+	// <position, force> force impulses in current frame
+	std::vector<std::pair<Vec3, Vec3>> m_forceApplications;
+
 	Vec3 m_position = Vec3::ZERO;
 	Quaternion<double> m_rotation = Quaternion<double>(Vec3(1.0,0.0,0.0),0);
 	Vec3 m_extents = Vec3(1,1,1);
