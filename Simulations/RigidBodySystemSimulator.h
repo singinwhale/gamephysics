@@ -36,7 +36,7 @@ public:
 
 private:
 	// Attributes
-	std::unique_ptr<RigidBodySystem> m_pRigidBodySystem; 
+	std::shared_ptr<RigidBodySystem> m_pRigidBodySystem; 
 	Vec3 m_externalForce;
 
 	// UI Attributes
@@ -44,6 +44,6 @@ private:
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
 
-	float m_defaultBoxSize[3] = { 0.1, 0.1, 0.1 };
+	float m_defaultBoxSize[3] = { 0.1f, 0.1f, 0.1f };
 	};
 #endif
