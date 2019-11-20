@@ -56,6 +56,18 @@ void RigidBodySystemSimulator::reset()
 	switch(m_iTestCase)
 	{
 	case 0:
+	{
+		Vec3 size = Vec3(this->m_defaultBoxSize[0], this->m_defaultBoxSize[1], this->m_defaultBoxSize[2]);
+		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
+		const auto index = this->getNumberOfRigidBodies();
+		this->addRigidBody(Vec3(0.3, 0.0, 0.0), size, 1.0);
+		this->setVelocityOf(index, Vec3(-1.0, 0.0, 0.0));
+		
+
+		//size = Vec3(this->m_defaultBoxSize[0], this->m_defaultBoxSize[1], this->m_defaultBoxSize[2]);
+		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
+		this->addRigidBody(Vec3(0.0, 0.0, 0.0), size, 1.0);
+	}
 		break;
 	case 1:
 		break;
@@ -130,9 +142,6 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
 	m_pRigidBodySystem->m_rigid_bodies.push_back(Box(position, size, mass));
-	m_pRigidBodySystem->m_rigid_bodies.back().m_angularMomentum.x = 1.0;
-	m_pRigidBodySystem->m_rigid_bodies.back().m_angularMomentum.y = 2.0;
-	m_pRigidBodySystem->m_rigid_bodies.back().m_angularMomentum.z = 3.0;
 }
 
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)

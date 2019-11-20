@@ -72,6 +72,15 @@ void Box::initialize()
 	traceMat.value[0][0] = trace;
 	traceMat.value[1][1] = trace;
 	traceMat.value[2][2] = trace;
-	m_inertiaTensorInverse = traceMat - covariance;
-	std::cout << "Inertia \n" << m_inertiaTensorInverse << std::endl;
+	m_inertiaTensorInverseZero = traceMat - covariance;
+}
+
+const Vec3 Box::getRelativePositionFromWorld(const Vec3 worldPosition) const
+{
+	return this->asMatrix().inverse().transformVector(worldPosition);
+}
+
+const Vec3 Box::getPointVelocity(const Vec3 relativePoint) const
+{
+	return m_velocity + cross(m_angularvelocity, relativePoint);
 }
