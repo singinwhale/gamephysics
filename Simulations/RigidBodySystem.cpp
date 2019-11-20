@@ -43,6 +43,7 @@ void RigidBodySystem::tick(float deltaSeconds)
 		// Update angular rotation
 		Quaternion<double>& derivative = Quaternion<double>(w.x, w.y, w.z,0.0);
 		body.m_rotation += (deltaSeconds / 2.0)*derivative*body.m_rotation;
+		body.m_rotation = body.m_rotation.unit();
 
 		// Calculate inertia for current rotation
 		Mat4d inertiaInverse = body.m_rotation.getRotMat().inverse()*body.m_inertiaTensorInverse*body.m_rotation.getRotMat();
