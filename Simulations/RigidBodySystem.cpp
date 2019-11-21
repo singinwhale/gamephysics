@@ -116,12 +116,29 @@ void RigidBodySystem::tick(float deltaSeconds)
 			const Vec3 relativeB = B.getRelativePositionFromWorld(collisionPoint);
 			// Get velocity of world point for both A and B
 			const Vec3 relativeVelocity = A.getPointVelocity(collisionPoint)- B.getPointVelocity(collisionPoint);
-			double impulseJ = Physics::getImpulseForCollision(relativeVelocity, simpletest.normalWorld, relativeA, relativeB, A.m_mass, B.m_mass, A.m_inertiaTensorInverse, B.m_inertiaTensorInverse,1.0);
+
+			double impulseJ = Physics::getImpulseForCollision(
+				relativeVelocity, 
+				simpletest.normalWorld, 
+				relativeA, 
+				relativeB, 
+				A.m_mass, 
+				B.m_mass,
+				A.m_inertiaTensorInverse, 
+				B.m_inertiaTensorInverse,
+				1.0
+			);
 			
 			// Update
 			A.m_velocity += (impulseJ * simpletest.normalWorld / A.m_mass);
 			B.m_velocity -= (impulseJ * simpletest.normalWorld / B.m_mass);
 
+			// move the two objects out of each other so they don't penetrate anymore.
+			// use 1.999 instead of 2 so they move a bit farther than perfect separation
+			Vec3 penetrationVectorHalf = (simpletest.normalWorld * simpletest.depth)/ (1.9999);
+			A.m_position += penetrationVectorHalf;
+			B.m_position -= penetrationVectorHalf;
+			
 			A.m_angularMomentum += cross(relativeA, impulseJ * simpletest.normalWorld);
 			B.m_angularMomentum -= cross(relativeB, impulseJ * simpletest.normalWorld);	
 		}
