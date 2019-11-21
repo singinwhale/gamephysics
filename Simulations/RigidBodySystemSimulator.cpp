@@ -53,6 +53,7 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 void RigidBodySystemSimulator::reset()
 {
 	m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
+	m_pRigidBodySystem->m_constantForce = m_externalForce;
 	switch(m_iTestCase)
 	{
 	case 0:
@@ -61,12 +62,20 @@ void RigidBodySystemSimulator::reset()
 		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
 		const auto index = this->getNumberOfRigidBodies();
 		this->addRigidBody(Vec3(0.3, 0.0, 0.0), size, 1.0);
-		this->setVelocityOf(index, Vec3(-1.0, 0.0, 0.0));
+		//this->setVelocityOf(index, Vec3(-1.0, 0.0, 0.0));
 		
 
 		//size = Vec3(this->m_defaultBoxSize[0], this->m_defaultBoxSize[1], this->m_defaultBoxSize[2]);
 		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
-		this->addRigidBody(Vec3(0.0, 0.0, 0.0), size, 1.0);
+		//this->addRigidBody(Vec3(0.0, 0.0, 0.0), size, 1.0);
+
+		double scale = 0.5;
+		addConstraint(Vec3(1,0,0)*scale, Vec3(-1,0,0));
+		addConstraint(Vec3(-1,0,0)*scale, Vec3(1,0,0));
+		addConstraint(Vec3(0,1,0)*scale, Vec3(0,-1,0));
+		addConstraint(Vec3(0,-1,0)*scale, Vec3(0,1,0));
+		addConstraint(Vec3(0,0,1)*scale, Vec3(0,0,-1));
+		addConstraint(Vec3(0,0,-1)*scale, Vec3(0,0,1));
 	}
 		break;
 	case 1:
@@ -83,6 +92,13 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 	for(const Box& box : m_pRigidBodySystem->m_rigid_bodies)
 	{
 		DUC->drawRigidBody(box.asMatrix());
+	}
+	RigidBodySystem* rbss = m_pRigidBodySystem.get();
+	for(const PlanarConstraint& constraint: rbss->m_constraints)
+	{
+		DUC->beginLine();
+		DUC->drawLine(constraint.position, Vec3(1, 0, 0), constraint.position + constraint.normal * 0.1, Vec3(0, 1, 0));
+		DUC->endLine();
 	}
 }
 
@@ -131,7 +147,7 @@ Vec3 RigidBodySystemSimulator::getLinearVelocityOfRigidBody(int i)
 
 Vec3 RigidBodySystemSimulator::getAngularVelocityOfRigidBody(int i)
 {
-	return m_pRigidBodySystem->m_rigid_bodies[i].m_angularvelocity;
+	return m_pRigidBodySystem->m_rigid_bodies[i].m_angularMomentum;
 }
 
 void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
@@ -156,10 +172,16 @@ void RigidBodySystemSimulator::setVelocityOf(int i, Vec3 velocity)
 
 void RigidBodySystemSimulator::setConstantForce(Vec3 force)
 {
+	m_externalForce = force;
 	m_pRigidBodySystem->m_constantForce = force;
 }
 
 Vec3 RigidBodySystemSimulator::getConstantForce() const
 {
 	return m_pRigidBodySystem->m_constantForce;
+}
+
+void RigidBodySystemSimulator::addConstraint(Vec3 position, Vec3 normal)
+{
+	m_pRigidBodySystem->m_constraints.push_back({ position,getNormalized(normal)});
 }

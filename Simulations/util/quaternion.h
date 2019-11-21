@@ -22,7 +22,7 @@ class Quaternion
 {
 public:
 	Scalar x,y,z,w;
-
+	
 	Quaternion () : x(0),y(0),z(0),w(0) {}
 	
 	Quaternion (Scalar nx, Scalar ny, Scalar nz, Scalar nw) : 

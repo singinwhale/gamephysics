@@ -37,10 +37,12 @@ public:
 	void setConstantForce(Vec3 force);
 	Vec3 getConstantForce() const;
 
+	void addConstraint(Vec3 position, Vec3 normal);
+
 private:
 	// Attributes
 	std::shared_ptr<RigidBodySystem> m_pRigidBodySystem; 
-	Vec3 m_externalForce;
+	Vec3 m_externalForce = Vec3(0,-9.81,0);
 
 	// UI Attributes
 	Point2D m_mouse;
