@@ -28,7 +28,8 @@ namespace Physics
 	{
 		return value + slope * deltaSeconds;
 	}
-
+	
+	/** returns the magnitude of the impulse resulting from the collision between two rigid bodies */
 	inline double getImpulseForCollision(Vec3 relativeVelocity, Vec3 normal, Vec3 positionA, Vec3 positionB, float massA, float massB, Mat4 inertiaA, Mat4 inertiaB, float restitution = 1.0)
 	{
 		const auto nominator = -(1 + restitution) * (dot(normal, relativeVelocity));
@@ -40,7 +41,8 @@ namespace Physics
 		return nominator / denominator;
 	}
 
-	inline double getImpulseForCollision(Vec3 relativeVelocity, Vec3 normal, Vec3 position, float mass, Mat4 inertiaTensorInverse, float restitution = 1.0)
+	/** returns the magnitude of the impulse for a Collision between an immovable object and a rigid body */
+	inline double getImpulseForCollision(Vec3 relativeVelocity, Vec3 normal, Vec3 position, double mass, Mat4 inertiaTensorInverse, double restitution = 1.0)
 	{
 		const auto nominator = -(1.0 + restitution) * (dot(normal, relativeVelocity));
 		const auto inverseMass = 1.0 / mass;

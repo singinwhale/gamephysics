@@ -5,6 +5,7 @@
 //#include "rigidBodySystem.h" 
 
 #define TESTCASEUSEDTORUNTEST 2
+#define USE_VERBOSE 0
 
 class RigidBodySystem;
 
@@ -16,6 +17,7 @@ public:
 	// Functions
 	const char * getTestCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
+	void addWallAndFloorConstraints();
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
@@ -30,7 +32,7 @@ public:
 	Vec3 getLinearVelocityOfRigidBody(int i);
 	Vec3 getAngularVelocityOfRigidBody(int i);
 	void applyForceOnBody(int i, Vec3 loc, Vec3 force);
-	void addRigidBody(Vec3 position, Vec3 size, int mass = 1.0);
+	void addRigidBody(Vec3 position, Vec3 size, double mass = 1.0);
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 
@@ -43,7 +45,8 @@ private:
 	// Attributes
 	std::shared_ptr<RigidBodySystem> m_pRigidBodySystem; 
 	Vec3 m_externalForce = Vec3(0,-9.81,0);
-
+	double m_friction = 3;
+	
 	// UI Attributes
 	Point2D m_mouse;
 	Point2D m_trackmouse;

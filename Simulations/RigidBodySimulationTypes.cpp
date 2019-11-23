@@ -4,13 +4,13 @@
 
 Box::Box()
 {
-	this->initialize();
+	calculateInertiaTensor();
 }
 
 Box::Box(Vec3 position)
 	: m_position(position)
 {
-	this->initialize();
+	calculateInertiaTensor();
 }
 
 Box::Box(Vec3 position, Vec3 size)
@@ -19,7 +19,7 @@ Box::Box(Vec3 position, Vec3 size)
 	m_extents = size;
 }
 
-Box::Box(Vec3 position, Vec3 size, float mass)
+Box::Box(Vec3 position, Vec3 size, double mass)
 	: Box(position, size)
 {
 	m_mass = mass;
@@ -41,7 +41,7 @@ Mat4 Box::asMatrix() const
 	return rotationScale * position;
 }
 
-std::vector<Vec3> Box::getVertices() const
+std::vector<Vec3> Box::getVerticesWorldSpace() const
 {
 	auto points = std::vector<Vec3>{};
 	auto oneAndZero = std::vector<float>{-1.0f,1.0f};
@@ -59,19 +59,17 @@ std::vector<Vec3> Box::getVertices() const
 	return points;
 }
 
-void Box::initialize()
+void Box::calculateInertiaTensor()
 {
-	VERBOSE(std::cout << "Box::initialize()" << std::endl)
 	const double oneTwelvth = 1.0 / 12.0;
-	m_inertiaTensorInverse.value[0][0] = oneTwelvth * m_mass * (sqr(m_extents.y) + sqr(m_extents.z));
-	m_inertiaTensorInverse.value[1][1] = oneTwelvth * m_mass * (sqr(m_extents.x) + sqr(m_extents.z));
-	m_inertiaTensorInverse.value[2][2] = oneTwelvth * m_mass * (sqr(m_extents.x) + sqr(m_extents.y));
-	
+	m_inertiaTensorInverse.value[0][0] = 1.0 / (oneTwelvth * m_mass * (sqr(m_extents.y) + sqr(m_extents.z)));
+	m_inertiaTensorInverse.value[1][1] = 1.0 / (oneTwelvth * m_mass * (sqr(m_extents.x) + sqr(m_extents.z)));
+	m_inertiaTensorInverse.value[2][2] = 1.0 / (oneTwelvth * m_mass * (sqr(m_extents.x) + sqr(m_extents.y)));
 }
 
 const Vec3 Box::getRelativePositionFromWorld(const Vec3 worldPosition) const
 {
-	return this->asMatrix().inverse().transformVector(worldPosition);
+	return this->asMatrix().inverse().transformVector(worldPosition - m_position);
 }
 
 const Vec3 Box::getRelativeDirectionFromWorld(const Vec3 worldPosition) const
@@ -79,20 +77,26 @@ const Vec3 Box::getRelativeDirectionFromWorld(const Vec3 worldPosition) const
 	return this->asMatrix().inverse().transformVector(worldPosition);
 }
 
-const Vec3 Box::getPointVelocity(const Vec3 relativePoint) const
+const Vec3 Box::getPointVelocityWorldSpace(const Vec3 relativePointWorldSpace) const
 {
-	return m_velocity + cross(m_angularMomentum, relativePoint);
+	
+	return m_velocity + cross(m_angularMomentum, relativePointWorldSpace);
 }
 
 const Mat4d Box::getInertiaTensorInverseWorldSpace() const
 {
-	return m_rotation.getRotMat().inverse() * m_inertiaTensorInverse * m_rotation.getRotMat();
+	return m_rotation.getRotMat() * m_inertiaTensorInverse * m_rotation.getRotMat().inverse();
 }
 
 Vec3 PlanarConstraint::projectOntoPlane(Vec3 point) const
 {
 	const Vec3 relativeVector = point - position;
-	return position + relativeVector - dot(relativeVector, normal) * normal;
+	return position + projectDirectionOntoPlane(relativeVector);
+}
+
+Vec3 PlanarConstraint::projectDirectionOntoPlane(Vec3 direction) const
+{
+	return direction - dot(direction, normal) * normal;
 }
 
 double PlanarConstraint::distanceToPlane(Vec3 point) const

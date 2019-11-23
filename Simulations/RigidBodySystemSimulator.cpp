@@ -21,6 +21,7 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	this->DUC = DUC;
 	
 	TwAddVarRW(DUC->g_pTweakBar, "Box Size", TW_TYPE_DIR3F, &m_defaultBoxSize[0], "");
+	TwAddVarRW(DUC->g_pTweakBar, "Friction", TW_TYPE_DOUBLE, &m_friction, "");
 	TwAddButton(DUC->g_pTweakBar, "Add Box", [](void* data)
 	{
 		REINTERPRET_RBSS(rbss, data);
@@ -50,35 +51,42 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	}, this, "");
 }
 
+void RigidBodySystemSimulator::addWallAndFloorConstraints()
+{
+	double scale = 0.5;
+	addConstraint(Vec3(1,0,0)*scale, Vec3(-1,0,0));
+	addConstraint(Vec3(-1,0,0)*scale, Vec3(1,0,0));
+	addConstraint(Vec3(0,1,0)*scale, Vec3(0,-1,0));
+	addConstraint(Vec3(0,-1,0)*scale, Vec3(0,1,0));
+	addConstraint(Vec3(0,0,1)*scale, Vec3(0,0,-1));
+	addConstraint(Vec3(0,0,-1)*scale, Vec3(0,0,1));
+}
+
 void RigidBodySystemSimulator::reset()
 {
 	m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
 	m_pRigidBodySystem->m_constantForce = m_externalForce;
+	m_pRigidBodySystem->m_friction = m_friction;
+	Vec3 size = Vec3(0.1);
 	switch(m_iTestCase)
 	{
 	case 0:
-	{
-		Vec3 size = Vec3(this->m_defaultBoxSize[0], this->m_defaultBoxSize[1], this->m_defaultBoxSize[2]);
-		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
+	{		
 		const auto index = this->getNumberOfRigidBodies();
-		this->addRigidBody(Vec3(0.3, 0.0, 0.0), size, 1.0);
-		//this->setVelocityOf(index, Vec3(-1.0, 0.0, 0.0));
+		this->addRigidBody(Vec3(0.3, 0.0, 0.0), size, 0.1);
+		this->setVelocityOf(index, Vec3(-1.0, 0.0, 0.0));
+		this->setOrientationOf(0, Quat(Vec3(1, 0, 0), M_PI / 2.0));
 		
+		this->addRigidBody(Vec3(0.0, 0.0, 0.0), size, 0.1);
 
-		//size = Vec3(this->m_defaultBoxSize[0], this->m_defaultBoxSize[1], this->m_defaultBoxSize[2]);
-		//rbss->addRigidBody(Vec3::ZERO, size, size.x*size.y*size.z);
-		//this->addRigidBody(Vec3(0.0, 0.0, 0.0), size, 1.0);
-
-		double scale = 0.5;
-		addConstraint(Vec3(1,0,0)*scale, Vec3(-1,0,0));
-		addConstraint(Vec3(-1,0,0)*scale, Vec3(1,0,0));
-		addConstraint(Vec3(0,1,0)*scale, Vec3(0,-1,0));
-		addConstraint(Vec3(0,-1,0)*scale, Vec3(0,1,0));
-		addConstraint(Vec3(0,0,1)*scale, Vec3(0,0,-1));
-		addConstraint(Vec3(0,0,-1)*scale, Vec3(0,0,1));
+		addWallAndFloorConstraints();
 	}
 		break;
 	case 1:
+
+		this->addRigidBody(Vec3(0.35, 0.35, 0.0), size, 0.1);
+		addConstraint(Vec3(0, -0.46, 0), getNormalized(Vec3(-1, 5, 0)));
+		addWallAndFloorConstraints();
 		break;
 	case 2:
 	default:
@@ -92,6 +100,9 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 	for(const Box& box : m_pRigidBodySystem->m_rigid_bodies)
 	{
 		DUC->drawRigidBody(box.asMatrix());
+		DUC->beginLine();
+		DUC->drawLine(box.m_position, Vec3(0, 0, 1), box.m_position + box.m_angularMomentum * 0.1, Vec3(0, 1, 1));
+		DUC->endLine();
 	}
 	RigidBodySystem* rbss = m_pRigidBodySystem.get();
 	for(const PlanarConstraint& constraint: rbss->m_constraints)
@@ -100,6 +111,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 		DUC->drawLine(constraint.position, Vec3(1, 0, 0), constraint.position + constraint.normal * 0.1, Vec3(0, 1, 0));
 		DUC->endLine();
 	}
+	DUC->setUpLighting(Vec3(1,0,0), Vec3(1, 1, 1), 0.1, Vec3(.8, 0, 0));
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
@@ -155,7 +167,7 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 	m_pRigidBodySystem->m_rigid_bodies[i].m_forceApplications.push_back(std::make_pair(loc, force));
 }
 
-void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
+void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, double mass)
 {
 	m_pRigidBodySystem->m_rigid_bodies.push_back(Box(position, size, mass));
 }
