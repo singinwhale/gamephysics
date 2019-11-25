@@ -1,6 +1,7 @@
 #ifndef RIGIDBODYSYSTEMSIMULATOR_h
 #define RIGIDBODYSYSTEMSIMULATOR_h
 #include "Simulator.h"
+#include "RigidBodySimulationTypes.h"
 //add your header for your rigid body system, for e.g.,
 //#include "rigidBodySystem.h" 
 
@@ -19,6 +20,11 @@ public:
 	void initUI(DrawingUtilitiesClass * DUC);
 	void addWallAndFloorConstraints();
 	void reset();
+	void drawDebugLines() const;
+	void drawDebugRays() const;
+	void drawConstraints() const;
+	void drawBoxes();
+	void drawAngularMomentum();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
@@ -32,7 +38,7 @@ public:
 	Vec3 getLinearVelocityOfRigidBody(int i);
 	Vec3 getAngularVelocityOfRigidBody(int i);
 	void applyForceOnBody(int i, Vec3 loc, Vec3 force);
-	void addRigidBody(Vec3 position, Vec3 size, double mass = 1.0);
+	std::size_t addRigidBody(Vec3 position, Vec3 size, double mass = 1.0);
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 
@@ -44,8 +50,7 @@ public:
 private:
 	// Attributes
 	std::shared_ptr<RigidBodySystem> m_pRigidBodySystem; 
-	Vec3 m_externalForce = Vec3(0,-9.81,0);
-	double m_friction = 3;
+	RBSSParams m_params;
 	
 	// UI Attributes
 	Point2D m_mouse;
@@ -53,5 +58,10 @@ private:
 	Point2D m_oldtrackmouse;
 
 	float m_defaultBoxSize[3] = { 0.1f, 0.1f, 0.1f };
+	double m_defaultMass = 2;
+	double m_roomScale = 0.5;
+
+	// lifetime of debug draws in milliseconds
+	uint32_t m_debugLifetime = 1000;
 	};
 #endif

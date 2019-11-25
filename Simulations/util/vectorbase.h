@@ -177,6 +177,8 @@ public:
 		};
 	};
 
+  static vector3Dim<Scalar> randomDir();
+
 	// expe compatibility functions
 	void makeFloor(const vector3Dim<Scalar>& cmp);
 	void makeCeil(const vector3Dim<Scalar>& cmp);
@@ -1173,6 +1175,14 @@ inline Scalar vector3Dim<Scalar>::squaredDistanceTo(const vector3Dim<Scalar>& ve
     dz = z-vec.z;
     return dx*dx + dy*dy + dz*dz;
 }
+	
+//--------------------------------------------------------------------------------
+template <class Scalar>
+vector3Dim<Scalar> vector3Dim<Scalar>::randomDir()
+{
+	return getNormalized(Vec3(randDouble01(), randDouble01(), randDouble01()));
+}
+	
 //--------------------------------------------------------------------------------
 template<class Scalar>
 inline void vector3Dim<Scalar>::makeFloor(const vector3Dim<Scalar>& cmp)

@@ -10,6 +10,7 @@
 
 #include "matrixbase.h"
 #include "vectorbase.h"
+#include "util.h"
 
 
 #define smax(a,b) ((a>b)?(a):(b))
@@ -135,8 +136,11 @@ public:
 
 		return res;
 	}
-	
 
+	static inline Quaternion getRandom()
+	{
+		return Quaternion(Vec3::randomDir(), randDouble01()* M_PI_2 - M_PI);
+	}
 
 };
 template<class Scalar>

@@ -9,9 +9,13 @@ std::wstring GetExePath();
 
 void UpdateWindowTitle(const std::wstring& appName);
 
-#define sqr(value) value*value
+double randDouble01();
+
+#define sqr(value) (value*value)
+
+
 #ifndef USE_VERBOSE
-#define USE_VERBOSE 1
+#define USE_VERBOSE 0
 #endif
 
 #if USE_VERBOSE

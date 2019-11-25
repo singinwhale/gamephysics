@@ -1,5 +1,24 @@
 ﻿#pragma once
-#include "DrawingUtilitiesClass.h"
+#include "util/vectorbase.h"
+#include "util/quaternion.h"
+#include <vector>
+#include "util/timer.h"
+using namespace GamePhysics;
+
+class DrawingUtilitiesClass;
+
+
+struct RBSSParams
+{
+	/// Always-acting force, e.g. gravity
+	Vec3 constantAcceleration = Vec3(0.0,-9.81,0.0);
+	double linearDamping = 0.5;
+	double angularDamping = 0.7;
+
+	double friction = 2;
+	bool showDebugInfo = false;
+};
+
 
 struct Force
 {
@@ -44,9 +63,6 @@ public:
 	std::vector<Vec3> getVerticesWorldSpace() const;
 	/// Calculate constants
 	void calculateInertiaTensor();
-
-	const Vec3 getRelativePositionFromWorld(const Vec3 worldPosition) const;
-	const Vec3 getRelativeDirectionFromWorld(Vec3 worldPosition) const;
 	const Vec3 getPointVelocityWorldSpace(const Vec3 relativePointWorldSpace) const;
 	const Vec3 getCollisionImpulse(const Box& otherBox, Vec3 collisionNormal);
 
@@ -65,3 +81,37 @@ struct PlanarConstraint
 	Vec3 projectDirectionOntoPlane(Vec3 direction) const;
 	double distanceToPlane(Vec3 point) const;
 };
+
+extern MuTime g_debugTimer;
+
+struct Straight
+{
+	Straight() { timestamp = g_debugTimer.time; }
+	
+	Vec3 colorStart = Vec3(1,0,0);
+	Vec3 colorEnd = Vec3(0,1,0);
+
+	unsigned long timestamp;
+};
+
+struct Ray : Straight
+{
+	Ray(Vec3 inStart, Vec3 inDir) : Straight(), start(inStart), direction(inDir) {};
+	
+	Vec3 start = Vec3::ZERO;
+	Vec3 direction = Vec3::ZERO;
+	float length = 0.1;
+	
+	void Draw(DrawingUtilitiesClass* DUC) const;
+};
+
+struct Line : Straight
+{
+	Line(Vec3 inStart, Vec3 inEnd) : Straight(), start(inStart), end(inEnd) { colorStart = colorEnd = Vec3(1, 0, 1); };
+	
+	Vec3 start = Vec3::ZERO;
+	Vec3 end = Vec3::ZERO;
+
+	void Draw(DrawingUtilitiesClass* DUC) const;
+};
+

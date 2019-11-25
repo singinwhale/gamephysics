@@ -56,3 +56,8 @@ void UpdateWindowTitle(const std::wstring& appName)
 		SetWindowText(DXUTGetHWND(), str);
 	}
 }
+
+double randDouble01()
+{
+	return double(rand()) / double(RAND_MAX);
+}

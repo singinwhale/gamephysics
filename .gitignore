@@ -5,7 +5,9 @@
 
 #debug files
 /Win32
-/Debug
+**/lib
+**/Debug
+**/Release
 
 SimulationsRunner/Win32
 SimulationsRunner/Debug

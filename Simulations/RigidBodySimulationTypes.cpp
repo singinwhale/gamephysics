@@ -1,6 +1,9 @@
 ﻿#include "RigidBodySimulationTypes.h"
 #include "util/util.h"
+#include "DrawingUtilitiesClass.h"
 #include "SimpleMath.h"
+
+MuTime g_debugTimer = MuTime().update();
 
 Box::Box()
 {
@@ -27,24 +30,23 @@ Box::Box(Vec3 position, Vec3 size, double mass)
 
 Mat4 Box::getRotScaleMatrix() const
 {
-	Mat4 rotation = m_rotation.getRotMat();
 	Mat4 scale;
 	scale.initScaling(m_extents.x, m_extents.y, m_extents.z);
-	return scale * rotation;
+	return scale * m_rotation.getRotMat();
 }
 
 Mat4 Box::asMatrix() const
 {
-	Mat4 rotationScale = getRotScaleMatrix();
 	Mat4 position;
 	position.initTranslation(m_position.x, m_position.y, m_position.z);
-	return rotationScale * position;
+	return getRotScaleMatrix() * position;
 }
 
 std::vector<Vec3> Box::getVerticesWorldSpace() const
 {
+	float edgelength = 1.0;
 	auto points = std::vector<Vec3>{};
-	auto oneAndZero = std::vector<float>{-1.0f,1.0f};
+	auto oneAndZero = std::vector<float>{-0.5f * edgelength,0.5f * edgelength};
 	auto transform = asMatrix();
 	for (auto& x: oneAndZero)
 	{
@@ -61,20 +63,12 @@ std::vector<Vec3> Box::getVerticesWorldSpace() const
 
 void Box::calculateInertiaTensor()
 {
-	const double oneTwelvth = 1.0 / 12.0;
-	m_inertiaTensorInverse.value[0][0] = 1.0 / (oneTwelvth * m_mass * (sqr(m_extents.y) + sqr(m_extents.z)));
-	m_inertiaTensorInverse.value[1][1] = 1.0 / (oneTwelvth * m_mass * (sqr(m_extents.x) + sqr(m_extents.z)));
-	m_inertiaTensorInverse.value[2][2] = 1.0 / (oneTwelvth * m_mass * (sqr(m_extents.x) + sqr(m_extents.y)));
-}
-
-const Vec3 Box::getRelativePositionFromWorld(const Vec3 worldPosition) const
-{
-	return this->asMatrix().inverse().transformVector(worldPosition - m_position);
-}
-
-const Vec3 Box::getRelativeDirectionFromWorld(const Vec3 worldPosition) const
-{
-	return this->asMatrix().inverse().transformVector(worldPosition);
+	// formula for moment of inertia of cuboids from https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+	
+	const double oneTwelvthMass = m_mass / 12.0;
+	m_inertiaTensorInverse.value[0][0] = 1.0 / (oneTwelvthMass * (sqr(m_extents.y) + sqr(m_extents.z)));
+	m_inertiaTensorInverse.value[1][1] = 1.0 / (oneTwelvthMass * (sqr(m_extents.x) + sqr(m_extents.z)));
+	m_inertiaTensorInverse.value[2][2] = 1.0 / (oneTwelvthMass * (sqr(m_extents.x) + sqr(m_extents.y)));
 }
 
 const Vec3 Box::getPointVelocityWorldSpace(const Vec3 relativePointWorldSpace) const
@@ -103,4 +97,14 @@ double PlanarConstraint::distanceToPlane(Vec3 point) const
 {
 	const Vec3 relativeVector = point - position;
 	return dot(relativeVector, normal);
+}
+
+void Ray::Draw(DrawingUtilitiesClass* DUC) const
+{
+	DUC->drawLine(start, colorStart, start + direction * length, colorEnd);
+}
+
+void Line::Draw(DrawingUtilitiesClass* DUC) const
+{
+	DUC->drawLine(start, colorStart, end, colorEnd);
 }
