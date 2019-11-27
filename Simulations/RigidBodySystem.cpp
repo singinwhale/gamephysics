@@ -164,6 +164,10 @@ void RigidBodySystem::tick(float deltaSeconds)
 		for (size_t j = i+1; j < m_rigid_bodies.size(); j++)
 		{
 			auto& testBody = m_rigid_bodies[j];
+			if (!referenceBody.haveSphereBVIntersection(testBody))
+			{   // if bounding spheres are not colliding, then bodies doesn't interact
+				continue;
+			}
 			GamePhysics::Mat4 testBox = testBody.asMatrix();
 
 			CollisionInfo simpletest = checkCollisionSAT(referenceBox, testBox);

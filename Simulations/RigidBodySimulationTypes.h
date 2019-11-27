@@ -7,6 +7,19 @@ using namespace GamePhysics;
 
 class DrawingUtilitiesClass;
 
+template<typename T>
+T& max(T& a, T& b)
+{
+	if (a > b)
+		return a;
+	return b;
+}
+
+template<typename T>
+T square(T& a)
+{
+	return a * a;
+}
 
 struct RBSSParams
 {
@@ -67,6 +80,9 @@ public:
 	const Vec3 getCollisionImpulse(const Box& otherBox, Vec3 collisionNormal);
 
 	const Mat4d getInertiaTensorInverseWorldSpace() const;
+
+	/** Calculate if bounding spheres of boxes are intersecting */
+	const bool haveSphereBVIntersection(const Box& other) const;
 };
 
 struct PlanarConstraint

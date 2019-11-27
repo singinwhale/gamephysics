@@ -82,6 +82,18 @@ const Mat4d Box::getInertiaTensorInverseWorldSpace() const
 	return m_rotation.getRotMat() * m_inertiaTensorInverse * m_rotation.getRotMat().inverse();
 }
 
+const bool Box::haveSphereBVIntersection(const Box & other) const
+{
+	const auto& B = other;
+	float maxDimensionA = max(m_extents.x, max(m_extents.y, m_extents.z));
+	float maxDimensionB = max(B.m_extents.x, max(B.m_extents.y, B.m_extents.z));
+	if (m_position.squaredDistanceTo(other.m_position) > (square(maxDimensionA) + square(maxDimensionB)))
+	{
+		return false;
+	}
+	return true;
+}
+
 Vec3 PlanarConstraint::projectOntoPlane(Vec3 point) const
 {
 	const Vec3 relativeVector = point - position;
