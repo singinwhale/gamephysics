@@ -62,16 +62,15 @@ void RigidBodySystem::tick(float deltaSeconds)
 	// I. integrate properties of rigid bodies
 	size_t counter = 0;
 	for (auto& body : m_rigid_bodies)
-	{
-
-		VERBOSE(std::cout << "[" << counter << "]" << "L" << body.m_angularMomentum << " v:" << body.m_velocity << " @" << body.m_position << std::endl;)
-		
+	{		
 		// Integrate linear parts
 		body.m_position += deltaSeconds * body.m_velocity;
 
 		// Update rotation
 		const Vec3 angularVelocity = body.getInertiaTensorInverseWorldSpace() * body.m_angularMomentum;
-		Quat angularVelocityQuat = Quat(getNormalized(angularVelocity), norm(angularVelocity));
+		const float angularVelocityMagnitude = norm(angularVelocity);
+		const Quat angularVelocityQuat = angularVelocityMagnitude > std::numeric_limits<float>::epsilon() ? Quat(getNormalized(angularVelocity), angularVelocityMagnitude) : Quat();
+		//const Quat angularVelocityQuat = Quat(angularVelocity.x, angularVelocity.y, angularVelocity.z, 0);
 
 		VERBOSE(
 			m_debugRays.emplace_back(Ray(body.m_position + Vec3(0, 0.2, 0), (Quat::slerp(body.m_rotation,angularVelocityQuat,1.0).getRotMat().transformVector(Vec3(1,0,0)))));
@@ -79,7 +78,8 @@ void RigidBodySystem::tick(float deltaSeconds)
 			m_debugRays.emplace_back(Ray(body.m_position + Vec3(0, 0.2, 0), (Quat::slerp(body.m_rotation,angularVelocityQuat,.33).getRotMat().transformVector(Vec3(1,0,0)))));
 			m_debugRays.emplace_back(Ray(body.m_position + Vec3(0, 0.2, 0), (Quat::slerp(body.m_rotation,angularVelocityQuat,0).getRotMat().transformVector(Vec3(1,0,0)))));
 		)
-		
+		VERBOSE(std::cout << "[" << counter << "]" << "L" << body.m_angularMomentum << " v:" << body.m_velocity << " w:"<< angularVelocityQuat << " @" << body.m_position << std::endl;)
+		//body.m_rotation = body.m_rotation + 0.5 * deltaSeconds * angularVelocityQuat * body.m_rotation;
 		body.m_rotation = body.m_rotation + angularVelocityQuat * deltaSeconds;
 		body.m_rotation = body.m_rotation.unit();
 		++counter;

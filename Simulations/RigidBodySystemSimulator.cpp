@@ -96,6 +96,16 @@ void RigidBodySystemSimulator::reset()
 		break;
 	case 2:
 	default:
+		m_params.angularDamping = 0;
+		m_params.linearDamping = 0;
+		m_params.constantAcceleration = Vec3::ZERO;
+		m_params.friction = 0;
+
+		addRigidBody(Vec3(-0.1f, -0.2f, 0.1f), Vec3(0.4f, 0.2f, 0.2f), 100.0f);
+
+		addRigidBody(Vec3(0.0f, 0.2f, 0.0f), Vec3(0.4f, 0.2f, 0.2f), 100.0);
+		setOrientationOf(1, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI)*0.25f));
+		setVelocityOf(1, Vec3(0.0f, -0.1f, 0.05f));
 		break;
 	}
 }
