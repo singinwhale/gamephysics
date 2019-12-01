@@ -47,6 +47,11 @@ public:
 
 	void addConstraint(Vec3 position, Vec3 normal);
 
+	Vec3 screenToRay(const float px, const float py);
+	Vec3 getCameraPosition();
+	Vec3 pointToRayProjection(Vec3 start, Vec3 end, Vec3 point);
+	Vec3 getScreenSize();
+
 private:
 	// Attributes
 	std::shared_ptr<RigidBodySystem> m_pRigidBodySystem; 

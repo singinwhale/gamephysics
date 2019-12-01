@@ -231,6 +231,44 @@ void RigidBodySystemSimulator::onClick(int x, int y)
 {
 	m_oldtrackmouse = m_oldtrackmouse;
 	m_trackmouse = { x,y };
+
+	// Find closest rigid body within intersection
+	auto rayDirection = this->screenToRay(x, y);
+	auto unitDirection = rayDirection / norm(rayDirection);
+	auto rayStart = this->getCameraPosition();
+
+	bool hasIntersection = false;
+	Box* intersectedBody = nullptr;
+	Vec3 intersectedPosition;
+	float minLambda = 1e100;
+	for (auto& body : this->m_pRigidBodySystem->m_rigid_bodies)
+	{
+		// Compute orthogonal projection of point to line
+		auto intersectionPoint = this->pointToRayProjection(rayStart,rayDirection,body.m_position);
+		float lambda = norm(intersectionPoint - rayStart);
+		if (minLambda > lambda)
+		{
+			auto diameter = max(body.m_extents.x, max(body.m_extents.y, body.m_extents.z));
+			if (diameter >= sqrt(intersectionPoint.squaredDistanceTo(body.m_position)))
+			{
+				minLambda = lambda;
+				intersectedBody = &body;
+				intersectedPosition = intersectionPoint;
+				hasIntersection = true;
+			}
+		}
+		
+	}
+	// Add force to rigit body
+	if (hasIntersection)
+	{
+		auto localForcePositions = intersectedPosition-intersectedBody->m_position;
+		std::cout << "Applying force at point: " << localForcePositions << std::endl;
+
+		intersectedBody->m_forceApplications.push_back(std::make_pair(localForcePositions, -unitDirection*1000));
+		//intersectedBody->m_forceApplications.push_back(std::make_pair(localForcePositions, unitDirection*100));
+	}
+
 }
 
 void RigidBodySystemSimulator::onMouse(int x, int y)
@@ -292,4 +330,47 @@ Vec3 RigidBodySystemSimulator::getConstantForce() const
 void RigidBodySystemSimulator::addConstraint(Vec3 position, Vec3 normal)
 {
 	m_pRigidBodySystem->m_constraints.push_back({ position,getNormalized(normal)});
+}
+
+Vec3 RigidBodySystemSimulator::screenToRay(const float px, const float py)
+{
+	auto screenSize = this->getScreenSize();
+	DirectX::XMMATRIX projectionMatrix, viewMatrix, inverseViewMatrix;
+	projectionMatrix = this->DUC->g_camera.GetProjMatrix();
+	viewMatrix = this->DUC->g_camera.GetViewMatrix();
+
+	auto pixelVector = DirectX::XMVectorSet(px, py, 0.0, 1.0);
+	auto resultVector = DirectX::XMVector3Unproject(pixelVector, 0.0, 0.0, screenSize.x, screenSize.y, 0.0, 1.0, projectionMatrix, viewMatrix, DirectX::XMMatrixIdentity());
+
+	return Vec3(DirectX::XMVectorGetX(resultVector), DirectX::XMVectorGetY(resultVector), DirectX::XMVectorGetZ(resultVector));
+}
+
+Vec3 RigidBodySystemSimulator::getScreenSize()
+{
+	D3D11_VIEWPORT viewport;
+	UINT viewportsCount = 1;
+	this->DUC->g_pd3dImmediateContext->RSGetViewports(&viewportsCount, &viewport);
+	return Vec3(viewport.Width, viewport.Height, 1.0);
+}
+
+Vec3 RigidBodySystemSimulator::getCameraPosition()
+{
+	DirectX::XMMATRIX projectionMatrix, viewMatrix, inverseViewMatrix;
+	viewMatrix = this->DUC->g_camera.GetViewMatrix();
+	inverseViewMatrix = DirectX::XMMatrixInverse(nullptr, viewMatrix);
+	auto cameraOrigin = DirectX::XMVectorSet(0, 0, 0, 1.0);
+	auto cameraPositionVector = DirectX::XMVector4Transform(cameraOrigin, inverseViewMatrix);
+	auto& cpv = cameraPositionVector;
+	return Vec3(DirectX::XMVectorGetX(cpv), ::XMVectorGetY(cpv), ::XMVectorGetZ(cpv));
+}
+
+Vec3 RigidBodySystemSimulator::pointToRayProjection(Vec3 start, Vec3 end, Vec3 point)
+{
+	auto lineVec = end - start;
+	auto linePoint = point - start;
+	auto l = norm(linePoint);
+	auto nLine = lineVec / norm(lineVec);
+	auto nP = linePoint / norm(linePoint);
+	auto angle = dot(nLine, nP);
+	return l * angle*nLine + start;
 }
