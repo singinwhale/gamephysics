@@ -80,7 +80,7 @@ void RigidBodySystem::tick(float deltaSeconds)
 		)
 		VERBOSE(std::cout << "[" << counter << "]" << "L" << body.m_angularMomentum << " v:" << body.m_velocity << " w:"<< angularVelocityQuat << " @" << body.m_position << std::endl;)
 		//body.m_rotation = body.m_rotation + 0.5 * deltaSeconds * angularVelocityQuat * body.m_rotation;
-		body.m_rotation = body.m_rotation + angularVelocityQuat * deltaSeconds;
+		body.m_rotation = body.m_rotation + angularVelocityQuat * deltaSeconds * 0.5;
 		body.m_rotation = body.m_rotation.unit();
 		++counter;
 	}
@@ -110,9 +110,9 @@ void RigidBodySystem::tick(float deltaSeconds)
 		body.m_angularMomentum += body.m_angularMomentum * -m_params.angularDamping * deltaSeconds;
 
 		VERBOSE(std::cout << "[" << counter << "]" << "Force: " << totalForce << " ---- Torque: " << torque << std::endl;)
-
+		
 		// Update angular momentum ...
-		body.m_angularMomentum += body.getInertiaTensorInverseWorldSpace() * torque * deltaSeconds;
+		body.m_angularMomentum +=  torque * deltaSeconds;
 	}
 	
 	// III. Detect collisions & apply impluses if neccessary

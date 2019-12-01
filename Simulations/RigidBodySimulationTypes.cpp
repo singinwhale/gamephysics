@@ -74,7 +74,7 @@ void Box::calculateInertiaTensor()
 const Vec3 Box::getPointVelocityWorldSpace(const Vec3 relativePointWorldSpace) const
 {
 	
-	return m_velocity + cross(m_angularMomentum, relativePointWorldSpace);
+	return m_velocity + cross(getAngularVelocity(), relativePointWorldSpace);
 }
 
 const Mat4d Box::getInertiaTensorInverseWorldSpace() const
@@ -92,6 +92,11 @@ const bool Box::haveSphereBVIntersection(const Box & other) const
 		return false;
 	}
 	return true;
+}
+
+const Vec3 Box::getAngularVelocity() const
+{
+	return getInertiaTensorInverseWorldSpace()*m_angularMomentum;
 }
 
 Vec3 PlanarConstraint::projectOntoPlane(Vec3 point) const

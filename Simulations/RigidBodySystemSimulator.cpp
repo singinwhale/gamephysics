@@ -78,10 +78,10 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 		demo.tick(2.0);	
 		auto& point = demo.m_rigid_bodies[0];
 		std::cout << "InertiaTensor Inverse " << point.m_inertiaTensorInverse << std::endl;
-		auto velocityPoint = demo.m_rigid_bodies[0].getPointVelocityWorldSpace(Vec3(0.3, 0.5, 0.25));
+		auto velocityPoint = point.getPointVelocityWorldSpace(Vec3(0.3, 0.5, 0.25));
 		std::cout << "Demo1 after h=2: Velocity at (0.3, 0.5, 0.25) " << velocityPoint << std::endl;
-		std::cout << "Angular velocity: " << demo.m_rigid_bodies[0].m_angularMomentum << std::endl;
-		std::cout << "Linear velocity" << demo.m_rigid_bodies[0].m_velocity << std::endl;
+		std::cout << "Angular velocity: " << point.getAngularVelocity() << std::endl;
+		std::cout << "Linear velocity" << point.m_velocity << std::endl;
 	}, this, "");
 }
 

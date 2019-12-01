@@ -83,6 +83,8 @@ public:
 
 	/** Calculate if bounding spheres of boxes are intersecting */
 	const bool haveSphereBVIntersection(const Box& other) const;
+
+	const Vec3 getAngularVelocity() const;
 };
 
 struct PlanarConstraint
