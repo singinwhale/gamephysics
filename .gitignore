@@ -1,0 +1,19 @@
+#visual studio project files
+/.vs
+*.vcxproj.user
+
+
+#debug files
+/Win32
+**/lib
+**/Debug
+**/Release
+
+SimulationsRunner/Win32
+SimulationsRunner/Debug
+
+Simulations/Win32
+Simulations/Debug
+
+SimulatorTester/Win32
+SimulatorTester/Debug
