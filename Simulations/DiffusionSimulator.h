@@ -52,7 +52,8 @@ public:
 	// Specific Functions
 	void drawObjects();
 	Grid* diffuseTemperatureExplicit(SimulationStatus& simulation, float deltaTime);
-	void diffuseTemperatureImplicit();
+	void diffuseTemperatureImplicit(float timeDelta);
+
 
 private:
 	// Attributes

@@ -78,11 +78,17 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 			auto& grid = this->m_status.m_grid;
 			// Fill with zero
 			grid->fill(0.0);
-			grid->getCellAt(grid->getWidth() / 2, grid->getHeight() / 2) = 10000.0;
+			grid->getCellAt(grid->getWidth() / 2, grid->getHeight() / 2) = 200.0;
 		}
 	break;
 	case 1:
-		cout << "Implicit solver!\n";
+		{
+			cout << "Implicit solver!\n";
+			auto& grid = this->m_status.m_grid;
+			// Fill with zero
+			grid->fill(0.0);
+			grid->getCellAt(grid->getWidth() / 2, grid->getHeight() / 2) = 200.0;
+		}
 		break;
 	default:
 		cout << "Empty Test!\n";
@@ -104,8 +110,11 @@ Grid* DiffusionSimulator::diffuseTemperatureExplicit(SimulationStatus& simulatio
 	};
 	//const auto& Told = [&](int x, int y) { if ((x < 0 || y < 0) || (x >= simulation.m_grid->getWidth() || y >= simulation.m_grid->getHeight())) return 0.0; else simulation.m_previous->getCellAt(x, y); };
 	const auto alpha = simulation.m_alpha;
-	const auto stepH = pow(1.0 / gridPtr->getWidth(),2);
-	const auto stepV = pow(1.0 / gridPtr->getHeight(),2);
+	const auto stepH = 1;
+	const auto stepV = 1;
+
+	//const auto stepH = pow(1.0 / gridPtr->getWidth(), 2);
+	//const auto stepV = pow(1.0 / gridPtr->getHeight(), 2);
 
 	for (size_t y = 0; y < size[1]; y++)
 	{
@@ -130,15 +139,25 @@ Grid* DiffusionSimulator::diffuseTemperatureExplicit(SimulationStatus& simulatio
 void setupB(std::vector<Real>& b) {//add your own parameters
 	// to be implemented
 	//set vector B[sizeX*sizeY]
-	for (int i = 0; i < 25; i++) {
+	/*for (int i = 0; i < 25; i++) {
 		b.at(i) = 0;
-	}
+	}*/
 }
 
-void fillT() {//add your own parameters
+void fillT(std::vector<Real>& b,Grid& g) {//add your own parameters
 	// to be implemented
 	//fill T with solved vector x
 	//make sure that the temperature in boundary cells stays zero
+	const size_t size[2] = { g.getWidth(),g.getHeight() };
+	const auto width = size[0];
+	const auto height = size[1];
+	for (size_t i = 0; i < size[0] * size[1]; i++)
+	{
+		size_t x = i % width;
+		size_t y = i / width;
+		g.getCellAt(x, y) = b[i];
+	}
+
 }
 
 void setupA(SparseMatrix<Real>& A, double factor) {//add your own parameters
@@ -152,17 +171,87 @@ void setupA(SparseMatrix<Real>& A, double factor) {//add your own parameters
 	}
 }
 
+void setupImplicitEuler2D(Grid& g, SparseMatrix<Real>& A, std::vector<Real>& b, float deltaTime, float deltaPos,float alpha)
+{
+	const size_t size[2] = { g.getWidth(),g.getHeight() };
+	const auto width = size[0];
+	const auto height = size[1];
 
-void DiffusionSimulator::diffuseTemperatureImplicit() {//add your own parameters
+	const auto& grid = &g;
+
+	const auto calculateIndex = [width, height](signed int x, signed int y) {
+		if (x < 0 || y < 0)
+			return -1;
+		if (x >= width || y >= height)
+			return -1;
+		return static_cast<signed int>(width * y + x);
+	};
+
+	//const auto deltaTime = 0.1;
+	const auto deltaPosition = pow(1,2);
+	//const auto alpha = 0.1;
+	const auto F = -alpha * deltaTime;
+
+	static std::vector<std::vector<char>> indices = { { -1,-1 },{ -1,-0 },{ 0,-1 },{ 0,1 },{ 1,0 },{ 1,1 } };
+	// For each Ti,j, we set up a single row in A matrix, containing values for parameters Ti+1,j...etc at time N
+	// See 'http://hplgit.github.io/num-methods-for-PDEs/doc/pub/diffu/sphinx/._main_diffu001.html' to understand what is Ax=b
+	for (size_t y = 0; y < height; y++) {
+
+		for (size_t x = 0; x < width; x++) {
+			auto index = calculateIndex(x, y);
+			// for each neighbour
+			for (auto& neighbour : indices)
+			{
+				auto neighbourIndex = calculateIndex(x + neighbour[0], y + neighbour[1]);
+				if (neighbourIndex == -1)
+					continue;
+				A.set_element(index, neighbourIndex, F);
+			}
+			// set our index
+			A.set_element(index, index, deltaPosition - 4 * F);
+			// set our b 
+			b.at(index) = grid->getCellAt(x, y)*deltaPosition;
+		}
+	}
+}
+
+void DiffusionSimulator::diffuseTemperatureImplicit(float deltaTime) {//add your own parameters
 	// solve A T = b
 	// to be implemented
-	const int N = 25;//N = sizeX*sizeY*sizeZ
+	const size_t size[2] = { m_status.m_grid->getWidth(),m_status.m_grid->getHeight() };
+	const auto width = size[0];
+	const auto height = size[1];
+
+	const int N = width*height;//N = sizeX*sizeY*sizeZ
 	SparseMatrix<Real> *A = new SparseMatrix<Real> (N);
 	std::vector<Real> *b = new std::vector<Real>(N);
+	//A->zero();
 
-	setupA(*A, 0.1);
-	setupB(*b);
+	//setupA(*A, 0.1);
+	//setupB(*b);
+	setupImplicitEuler2D(*m_status.m_grid,*A, *b,deltaTime,1.0,m_status.m_alpha);
 
+	/*std::cout << "Matrix " << std::endl;
+	for (size_t y = 0; y < N; y++)
+	{
+		for (size_t x = 0; x < N; x++)
+		{
+			std::cout << " " << setw(4) << A->operator()(x, y);
+		}
+		std::cout << std::endl;
+	}
+	std::cout << setw(1);
+
+	std::cout << "B vec: " << std::endl;
+	for (size_t y = 0; y < N; y++)
+	{
+		std::cout << " " << (*b)[y];
+	}	
+	std::cout << std::endl;
+
+
+	std::cout << "b: " << b << std::endl;
+	*/
 	// perform solve
 	Real pcg_target_residual = 1e-05;
 	Real pcg_max_iterations = 1000;
@@ -178,10 +267,8 @@ void DiffusionSimulator::diffuseTemperatureImplicit() {//add your own parameters
 	// preconditioners: 0 off, 1 diagonal, 2 incomplete cholesky
 	solver.solve(*A, *b, x, ret_pcg_residual, ret_pcg_iterations, 0);
 	// x contains the new temperature values
-	fillT();//copy x to T
+	fillT(x,*m_status.m_grid);//copy x to T
 }
-
-
 
 void DiffusionSimulator::simulateTimestep(float timeStep)
 {
@@ -193,7 +280,7 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 		T = diffuseTemperatureExplicit(this->m_status,timeStep);
 		break;
 	case 1:
-		diffuseTemperatureImplicit();
+		diffuseTemperatureImplicit(timeStep);
 		break;
 	}
 }
@@ -203,31 +290,26 @@ void DiffusionSimulator::drawObjects()
 	// to be implemented
 	//visualization
 
-	switch (m_iTestCase)
+	for (size_t x = 0; x < T->getWidth(); x++)
 	{
-	case 0:
-		for (size_t x = 0; x < T->getWidth(); x++)
+		for (size_t y = 0; y < T->getHeight(); y++)
 		{
-			for (size_t y = 0; y < T->getHeight(); y++)
-			{
-				const double scX = 1.0 / T->getWidth();
-				const double scY = 1.0 / T->getHeight();
-				auto temp = T->getCellAt(x, y);
-				auto const maxTemp = 100.0;
-				// Interpolation parameter t
-				auto t = temp / maxTemp;
+			const double scX = 1.0 / T->getWidth();
+			const double scY = 1.0 / T->getHeight();
+			auto temp = T->getCellAt(x, y);
+			auto const maxTemp = 100.0;
+			// Interpolation parameter t
+			auto t = temp / maxTemp;
 
-				const double scZ = min(scX, scY);
-				auto pos = Vec3(x*scX,t*scZ, y*scY);
-				auto size = Vec3(scX, scZ, scY);
+			const double scZ = min(scX, scY);
+			auto pos = Vec3(x*scX,t*scZ, y*scY);
+			auto size = Vec3(scX, scZ, scY);
 
-				
-				// Interpolate between white and red color
-				auto color = Vec3(1.0, 0.0, 0.0)*t + (1.0 - t)*Vec3(1.0);
-				// Draw
-				this->DUC->setUpLighting(Vec3(0.0), Vec3(1.0), 0.1, color);
-				this->DUC->drawSphere(pos, size);
-			}
+			// Interpolate between white and red color
+			auto color = Vec3(1.0, 0.0, 0.0)*t + (1.0 - t)*Vec3(1.0);
+			// Draw
+			this->DUC->setUpLighting(Vec3(0.0), Vec3(1.0), 0.1, color);
+			this->DUC->drawSphere(pos, size);
 		}
 	}
 }
