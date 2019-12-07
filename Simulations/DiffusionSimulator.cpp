@@ -2,7 +2,11 @@
 #include "pcgsolver.h"
 using namespace std;
 
-Grid::Grid() {
+Grid::Grid(const size_t x, const size_t y) {
+	// Allocated & fill grid with 0.0
+	this->m_grid = std::vector<cell_t>(x*y, 0.0);
+	this->m_width = x;
+	this->m_height = y;
 }
 
 
@@ -13,6 +17,7 @@ DiffusionSimulator::DiffusionSimulator()
 	m_vfMovableObjectFinalPos = Vec3();
 	m_vfRotate = Vec3();
 	// to be implemented
+	this->m_status.m_grid = std::make_unique<Grid>(Grid(3, 3));
 }
 
 const char * DiffusionSimulator::getTestCasesStr(){
@@ -23,13 +28,13 @@ void DiffusionSimulator::reset(){
 		m_mouse.x = m_mouse.y = 0;
 		m_trackmouse.x = m_trackmouse.y = 0;
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
-
 }
 
 void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// to be implemented
+	TwAddVarCB(DUC->g_pTweakBar, "m", TW_TYPE_INT32, &m_iNumSpheres, "min=1");
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -40,11 +45,18 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	//
 	//to be implemented
 	//
+
 	switch (m_iTestCase)
 	{
 	case 0:
-		cout << "Explicit solver!\n";
-		break;
+		{
+			cout << "Reset Explicit solver!\n";
+			auto& grid = this->m_status.m_grid;
+			// Fill with zero
+			grid->fill(0.0);
+			grid->getCellAt(grid->getWidth() / 2, grid->getHeight() / 2) = 1000.0;
+		}
+	break;
 	case 1:
 		cout << "Implicit solver!\n";
 		break;
@@ -52,13 +64,39 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 		cout << "Empty Test!\n";
 		break;
 	}
+
 }
 
-Grid* DiffusionSimulator::diffuseTemperatureExplicit() {//add your own parameters
-	Grid* newT = new Grid();
-	// to be implemented
+Grid* DiffusionSimulator::diffuseTemperatureExplicit(SimulationStatus& simulation, float deltaTime) {//add your own parameters
+	const size_t size[2] = { simulation.m_grid->getWidth(), simulation.m_grid->getHeight() };
+	auto& newT = std::make_unique<Grid>(Grid(size[0],size[1]));
+	
+	auto gridPtr = simulation.m_grid.get();
 	//make sure that the temperature in boundary cells stays zero
-	return newT;
+	const auto& T = [gridPtr](int x, int y) { 
+		if ((x < 0 || y < 0) || (x >= gridPtr->getWidth() || y >= gridPtr->getHeight()))
+			return 0.0f; 
+		return gridPtr->getCellAt(x, y); 
+	};
+	//const auto& Told = [&](int x, int y) { if ((x < 0 || y < 0) || (x >= simulation.m_grid->getWidth() || y >= simulation.m_grid->getHeight())) return 0.0; else simulation.m_previous->getCellAt(x, y); };
+	const auto alpha = simulation.m_alpha;
+	for (size_t y = 0; y < size[1]; y++)
+	{
+		for (size_t x = 0; x < size[0]; x++)
+		{
+			// compute dTdt: see slides to use forward method for time derivative and central method for dT2dx2 and dT2dy2
+			auto dTdt = alpha * (T(x + 1, y) - 2 * T(x, y) + T(x - 1, y) + T(x, y + 1) - 2 * T(x, y) + T(x, y - 1)) * deltaTime + T(x, y);;
+			// Integrate using Euler
+			//auto newTcell = dTdt*deltaTime+T(x,y);
+			// Store result
+			newT->getCellAt(x, y) = dTdt;
+
+			std::cout << "Cell diff [" << x << ", " << y << "]: " << (newT->getCellAt(x, y) - T(x, y)) << std::endl;
+		}
+	}
+	simulation.m_previous = std::move(simulation.m_grid);
+	simulation.m_grid = std::move(newT);
+	return simulation.m_grid.get();
 }
 
 void setupB(std::vector<Real>& b) {//add your own parameters
@@ -124,7 +162,7 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 	switch (m_iTestCase)
 	{
 	case 0:
-		T = diffuseTemperatureExplicit();
+		T = diffuseTemperatureExplicit(this->m_status,timeStep);
 		break;
 	case 1:
 		diffuseTemperatureImplicit();
@@ -136,6 +174,31 @@ void DiffusionSimulator::drawObjects()
 {
 	// to be implemented
 	//visualization
+
+	switch (m_iTestCase)
+	{
+	case 0:
+		for (size_t x = 0; x < T->getWidth(); x++)
+		{
+			for (size_t y = 0; y < T->getHeight(); y++)
+			{
+				const float scX = 1.0 / T->getWidth();
+				const float scY = 1.0 / T->getHeight();
+				auto temp = T->getCellAt(x, y);
+				auto pos = Vec3(x*scX, y*scY, 0.0);
+				auto size = Vec3(scX, scY, 0.1);
+
+				auto const maxTemp = 100.0;
+				// Interpolation parameter t
+				auto t = temp / maxTemp;
+				// Interpolate between white and red color
+				auto color = Vec3(1.0, 0.0, 0.0)*t + (1.0 - t)*Vec3(1.0);
+				// Draw
+				this->DUC->setUpLighting(Vec3(0.0), Vec3(1.0), 0.1, color);
+				this->DUC->drawSphere(pos, size);
+			}
+		}
+	}
 }
 
 
