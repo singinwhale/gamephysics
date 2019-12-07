@@ -7,7 +7,7 @@
 //impement your own grid class for saving grid data
 class Grid {
 public:
-	using cell_t = float;
+	using cell_t = double;
 	// Construtors
 	Grid(const size_t x = 16, const size_t y = 16);
 
@@ -65,6 +65,7 @@ private:
 	Grid *T; //save results of every time step
 
 	SimulationStatus m_status;
+
 };
 
 #endif

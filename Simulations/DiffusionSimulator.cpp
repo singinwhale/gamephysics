@@ -34,7 +34,31 @@ void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// to be implemented
-	TwAddVarCB(DUC->g_pTweakBar, "m", TW_TYPE_INT32, &m_iNumSpheres, "min=1");
+	TwAddVarCB(DUC->g_pTweakBar, "Size M", TW_TYPE_INT32, [] (const void* targetValue, void* userData) 
+	{
+		auto m = *reinterpret_cast<const size_t*>(targetValue);
+		auto ds = reinterpret_cast<DiffusionSimulator*>(userData);
+		ds->m_status.m_grid = std::make_unique<Grid>(Grid(m,m));
+		ds->m_status.m_grid->getCellAt(m/2,m/2) = 1000.0;
+	}
+	, [](void* targetValue, void* userData)
+	{
+		auto m = reinterpret_cast<size_t*>(targetValue);
+		auto ds = reinterpret_cast<DiffusionSimulator*>(userData);
+		*m = ds->m_status.m_grid->getWidth();
+	}, this, "min=1");
+	TwAddVarCB(DUC->g_pTweakBar, "Alpha", TW_TYPE_FLOAT, [](const void* targetValue, void* userData)
+	{
+		auto alpha = *reinterpret_cast<const float*>(targetValue);
+		auto ds = reinterpret_cast<DiffusionSimulator*>(userData);
+		ds->m_status.m_alpha = alpha;
+	}
+		, [](void* targetValue, void* userData)
+	{
+		auto m = reinterpret_cast<float*>(targetValue);
+		auto ds = reinterpret_cast<DiffusionSimulator*>(userData);
+		*m = ds->m_status.m_alpha;
+	}, this, "");
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -54,7 +78,7 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 			auto& grid = this->m_status.m_grid;
 			// Fill with zero
 			grid->fill(0.0);
-			grid->getCellAt(grid->getWidth() / 2, grid->getHeight() / 2) = 1000.0;
+			grid->getCellAt(grid->getWidth() / 2, grid->getHeight() / 2) = 10000.0;
 		}
 	break;
 	case 1:
@@ -75,27 +99,31 @@ Grid* DiffusionSimulator::diffuseTemperatureExplicit(SimulationStatus& simulatio
 	//make sure that the temperature in boundary cells stays zero
 	const auto& T = [gridPtr](int x, int y) { 
 		if ((x < 0 || y < 0) || (x >= gridPtr->getWidth() || y >= gridPtr->getHeight()))
-			return 0.0f; 
+			return 0.0; 
 		return gridPtr->getCellAt(x, y); 
 	};
 	//const auto& Told = [&](int x, int y) { if ((x < 0 || y < 0) || (x >= simulation.m_grid->getWidth() || y >= simulation.m_grid->getHeight())) return 0.0; else simulation.m_previous->getCellAt(x, y); };
 	const auto alpha = simulation.m_alpha;
+	const auto stepH = pow(1.0 / gridPtr->getWidth(),2);
+	const auto stepV = pow(1.0 / gridPtr->getHeight(),2);
+
 	for (size_t y = 0; y < size[1]; y++)
 	{
 		for (size_t x = 0; x < size[0]; x++)
 		{
 			// compute dTdt: see slides to use forward method for time derivative and central method for dT2dx2 and dT2dy2
-			auto dTdt = alpha * (T(x + 1, y) - 2 * T(x, y) + T(x - 1, y) + T(x, y + 1) - 2 * T(x, y) + T(x, y - 1)) * deltaTime + T(x, y);;
+			auto dTdt = alpha * ((T(x + 1, y) - 2 * T(x, y) + T(x - 1, y))/stepH + (T(x, y + 1) - 2 * T(x, y) + T(x, y - 1))/stepV) * deltaTime + T(x, y);;
 			// Integrate using Euler
 			//auto newTcell = dTdt*deltaTime+T(x,y);
 			// Store result
 			newT->getCellAt(x, y) = dTdt;
 
-			std::cout << "Cell diff [" << x << ", " << y << "]: " << (newT->getCellAt(x, y) - T(x, y)) << std::endl;
+			//std::cout << "Cell diff [" << x << ", " << y << "]: " << (newT->getCellAt(x, y) - T(x, y)) << std::endl;
 		}
 	}
 	simulation.m_previous = std::move(simulation.m_grid);
 	simulation.m_grid = std::move(newT);
+	std::cout << "Delta time " << deltaTime << std::endl;
 	return simulation.m_grid.get();
 }
 
@@ -182,15 +210,18 @@ void DiffusionSimulator::drawObjects()
 		{
 			for (size_t y = 0; y < T->getHeight(); y++)
 			{
-				const float scX = 1.0 / T->getWidth();
-				const float scY = 1.0 / T->getHeight();
+				const double scX = 1.0 / T->getWidth();
+				const double scY = 1.0 / T->getHeight();
 				auto temp = T->getCellAt(x, y);
-				auto pos = Vec3(x*scX, y*scY, 0.0);
-				auto size = Vec3(scX, scY, 0.1);
-
 				auto const maxTemp = 100.0;
 				// Interpolation parameter t
 				auto t = temp / maxTemp;
+
+				const double scZ = min(scX, scY);
+				auto pos = Vec3(x*scX,t*scZ, y*scY);
+				auto size = Vec3(scX, scZ, scY);
+
+				
 				// Interpolate between white and red color
 				auto color = Vec3(1.0, 0.0, 0.0)*t + (1.0 - t)*Vec3(1.0);
 				// Draw
