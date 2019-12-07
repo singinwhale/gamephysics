@@ -224,13 +224,19 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DiffusionSimulator.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="SphereSystemSimulator.cpp" />
     <ClCompile Include="TemplateSimulator.cpp" />
     <ClCompile Include="util\FFmpeg.cpp" />
     <ClCompile Include="util\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DiffusionSimulator.h" />
     <ClInclude Include="DrawingUtilitiesClass.h" />
+    <ClInclude Include="general.h" />
+    <ClInclude Include="MassSpringSystemSimulator.h" />
+    <ClInclude Include="pcgsolver.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="SphereSystemSimulator.h" />
     <ClInclude Include="TemplateSimulator.h" />
@@ -240,6 +246,7 @@
     <ClInclude Include="util\timer.h" />
     <ClInclude Include="util\util.h" />
     <ClInclude Include="util\vectorbase.h" />
+    <ClInclude Include="vectorbase.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="effect.fx">
