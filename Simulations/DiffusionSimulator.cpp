@@ -34,18 +34,18 @@ void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// to be implemented
-	TwAddVarCB(DUC->g_pTweakBar, "Size M", TW_TYPE_INT32, [] (const void* targetValue, void* userData) 
+	TwAddVarCB(DUC->g_pTweakBar, "Size M", TW_TYPE_UINT32, [] (const void* targetValue, void* userData) 
 	{
-		auto m = *reinterpret_cast<const size_t*>(targetValue);
+		const uint32_t m = *reinterpret_cast<const uint32_t*>(targetValue);
 		auto ds = reinterpret_cast<DiffusionSimulator*>(userData);
 		ds->m_status.m_grid = std::make_unique<Grid>(Grid(m,m));
 		ds->m_status.m_grid->getCellAt(m/2,m/2) = 1000.0;
 	}
 	, [](void* targetValue, void* userData)
 	{
-		auto m = reinterpret_cast<size_t*>(targetValue);
+		uint32_t* m = reinterpret_cast<uint32_t*>(targetValue);
 		auto ds = reinterpret_cast<DiffusionSimulator*>(userData);
-		*m = ds->m_status.m_grid->getWidth();
+		*m = uint32_t(ds->m_status.m_grid->getWidth());
 	}, this, "min=1");
 	TwAddVarCB(DUC->g_pTweakBar, "Alpha", TW_TYPE_FLOAT, [](const void* targetValue, void* userData)
 	{
@@ -309,7 +309,7 @@ void DiffusionSimulator::drawObjects()
 			auto color = Vec3(1.0, 0.0, 0.0)*t + (1.0 - t)*Vec3(1.0);
 			// Draw
 			this->DUC->setUpLighting(Vec3(0.0), Vec3(1.0), 0.1, color);
-			this->DUC->drawSphere(pos, size);
+			this->DUC->drawSphere(pos, size/2.0);
 		}
 	}
 }
