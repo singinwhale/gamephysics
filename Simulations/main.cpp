@@ -1,3 +1,5 @@
+#include "resource.h"
+
 #include <sstream>
 #include <iomanip>
 #include <random>
@@ -45,7 +47,7 @@ float 	g_fTimestep = 0.001;
 float   g_fTimeFactor = 1;
 #endif
 bool  g_bDraw = true;
-int g_iTestCase = 0;
+int g_iTestCase = 1;
 int g_iPreTestCase = -1;
 bool  g_bSimulateByStep = false;
 bool firstTime = true;
@@ -309,7 +311,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
 	// Draw Simulator
 	if(g_bDraw)g_pSimulator->drawFrame(pd3dImmediateContext);
-
+	
 	// Draw GUI
     TwDraw();
 

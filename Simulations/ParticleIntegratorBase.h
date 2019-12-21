@@ -18,6 +18,8 @@ protected:
 
 	float damping = 0;
 
+	float angularForce = 2;
+
 	/** Resets any residual forces in the given state that might remain from a previous simulation step */
 	void ClearForces(WorldState& state) const;
 

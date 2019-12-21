@@ -5,6 +5,7 @@
 using namespace GamePhysics;
 
 typedef size_t ParticleHandle;
+typedef size_t SpringHandle;
 
 struct Particle
 {
@@ -31,7 +32,7 @@ struct Spring
 	ParticleHandle endParticle = -1;
 
 	// rest length of the spring in meters
-	double restLength = 1;
+	Vec3 restVector = Vec3::ZERO;
 
 	// hook constant for the spring
 	double stiffness = 1;
@@ -39,7 +40,7 @@ struct Spring
 	// only used during update
 	Vec3 force = Vec3::ZERO;
 
-	Spring(ParticleHandle start, ParticleHandle end, double length, double inStiffness);
+	Spring(ParticleHandle start, ParticleHandle end, Vec3 lengthVector, double inStiffness);
 	Spring() = default;
 };
 
