@@ -4,6 +4,10 @@
 #include "IParticleIntegrator.h"
 #include "ParticleSimulationTypes.h"
 
+namespace import {
+	class SpringsImporter;
+}
+
 class ID3D11DeviceContext;
 
 // Do Not Change
@@ -34,6 +38,7 @@ public:
 	static void TW_CALL demo5(void* simulator);
 	static void TW_CALL handleAddRope(void* simulator);
 	static void TW_CALL handleAddIcosphere(void* simulator);
+	static void TW_CALL handleAddSuzanne(void* simulator);
 	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
 	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);
@@ -73,9 +78,9 @@ public:
 private:
 	// Data Attributes
 	float m_fMass = 10;
-	float m_fStiffness = 40;
+	float m_fStiffness = 2000;
 	float m_fDamping = 0;
-	int m_iIntegrator = 0;
+	int m_iIntegrator = LEAPFROG;
 
 	// UI Attributes
 	Vec3 m_externalForce = Vec3::ZERO;
@@ -93,5 +98,7 @@ private:
 	std::unique_ptr<IParticleIntegrator> m_particleIntegrators[3];
 
 	size_t m_selectedParticle = -1;
+
+	void UseImporter(import::SpringsImporter* importer);
 };
 #endif

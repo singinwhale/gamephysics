@@ -225,7 +225,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EulerParticleIntegrator.cpp" />
+    <ClCompile Include="importer\SpringsImporter.cpp" />
+    <ClCompile Include="importer\TetGenImporter.cpp" />
     <ClCompile Include="IParticleIntegrator.cpp" />
+    <ClCompile Include="LeapfrogParticleIntegrator.cpp" />
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
     <ClCompile Include="MidpointParticleIntegrator.cpp" />
     <ClCompile Include="ParticleIntegratorBase.cpp" />
@@ -237,12 +240,16 @@
   <ItemGroup>
     <ClInclude Include="DrawingUtilitiesClass.h" />
     <ClInclude Include="EulerParticleIntegrator.h" />
+    <ClInclude Include="importer\SpringsImporter.h" />
+    <ClInclude Include="importer\TetGenImporter.h" />
     <ClInclude Include="IParticleIntegrator.h" />
+    <ClInclude Include="LeapfrogParticleIntegrator.h" />
     <ClInclude Include="MassSpringSystemSimulator.h" />
     <ClInclude Include="MidpointParticleIntegrator.h" />
     <ClInclude Include="ParticleIntegratorBase.h" />
     <ClInclude Include="ParticleSimulationTypes.h" />
     <ClInclude Include="PhysicsFunctions.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="TemplateSimulator.h" />
     <ClInclude Include="util\FFmpeg.h" />
@@ -283,6 +290,24 @@
     <ProjectReference Include="..\Effects11\Effects11_2017.vcxproj">
       <Project>{df460eab-570d-4b50-9089-2e2fc801bf38}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Simulations.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="file1.bin" />
+    <None Include="file2.bin" />
+    <None Include="importer\icosphere\icosphere.1.edge" />
+    <None Include="importer\icosphere\icosphere.1.ele" />
+    <None Include="importer\icosphere\icosphere.1.face" />
+    <None Include="importer\icosphere\icosphere.1.neigh" />
+    <None Include="importer\icosphere\icosphere.1.node" />
+    <None Include="importer\icosphere\icosphere.1.smesh" />
+    <None Include="importer\suzanne\suzanne.1.edge" />
+    <None Include="importer\suzanne\suzanne.1.ele" />
+    <None Include="importer\suzanne\suzanne.1.face" />
+    <None Include="importer\suzanne\suzanne.1.node" />
+    <None Include="importer\suzanne\suzanne.1.smesh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

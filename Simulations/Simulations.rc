@@ -1,0 +1,119 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// EDGE
+//
+
+ICOSPHERE_EDGE          EDGE                    "importer\\icosphere\\icosphere.1.edge"
+
+SUZANNE_EDGE            EDGE                    "importer\\suzanne\\suzanne.1.edge"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// ELE
+//
+
+ICOSPHERE_ELE           ELE                     "importer\\icosphere\\icosphere.1.ele"
+
+SUZANNE_ELE             ELE                     "importer\\suzanne\\suzanne.1.ele"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// FACE
+//
+
+ICOSPHERE_FACE          FACE                    "importer\\icosphere\\icosphere.1.face"
+
+SUZANNE_FACE            FACE                    "importer\\suzanne\\suzanne.1.face"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// NEIGH
+//
+
+ICOSPHERE_NEIGH         NEIGH                   "importer\\icosphere\\icosphere.1.neigh"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// NODE
+//
+
+ICOSPHERE_NODE          NODE                    "importer\\icosphere\\icosphere.1.node"
+
+SUZANNE_NODE            NODE                    "importer\\suzanne\\suzanne.1.node"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// SMESH
+//
+
+ICOSPHERE_SMESH         SMESH                   "importer\\icosphere\\icosphere.1.smesh"
+
+SUZANNE_SMESH           SMESH                   "importer\\suzanne\\suzanne.1.smesh"
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

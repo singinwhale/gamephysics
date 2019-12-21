@@ -24,6 +24,12 @@
     <ClCompile Include="LeapfrogParticleIntegrator.cpp">
       <Filter>Integrators</Filter>
     </ClCompile>
+    <ClCompile Include="importer\TetGenImporter.cpp">
+      <Filter>importer</Filter>
+    </ClCompile>
+    <ClCompile Include="importer\SpringsImporter.cpp">
+      <Filter>importer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DrawingUtilitiesClass.h" />
@@ -53,6 +59,13 @@
     <ClInclude Include="LeapfrogParticleIntegrator.h">
       <Filter>Integrators</Filter>
     </ClInclude>
+    <ClInclude Include="importer\SpringsImporter.h">
+      <Filter>importer</Filter>
+    </ClInclude>
+    <ClInclude Include="importer\TetGenImporter.h">
+      <Filter>importer</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\readme.txt" />
@@ -61,5 +74,54 @@
     <Filter Include="Integrators">
       <UniqueIdentifier>{ebb5c64f-fd42-44bf-8397-d3452b8730e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="importer">
+      <UniqueIdentifier>{87b5afeb-1e68-4b18-ac4f-aee9c684edaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="importer\icosphere">
+      <UniqueIdentifier>{cca11a09-0132-457b-9d3f-cb7c00428068}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{703469f3-b6cd-440d-a8b0-339307750b69}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Simulations.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="file1.bin" />
+    <None Include="file2.bin" />
+    <None Include="importer\icosphere\icosphere.1.edge">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\icosphere\icosphere.1.ele">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\icosphere\icosphere.1.face">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\icosphere\icosphere.1.neigh">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\icosphere\icosphere.1.node">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\icosphere\icosphere.1.smesh">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\suzanne\suzanne.1.node">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\suzanne\suzanne.1.smesh">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\suzanne\suzanne.1.edge">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\suzanne\suzanne.1.ele">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="importer\suzanne\suzanne.1.face">
+      <Filter>resources</Filter>
+    </None>
   </ItemGroup>
 </Project>

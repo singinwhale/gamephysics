@@ -23,10 +23,10 @@ Particle::Particle(Vec3 inPosition)
 {
 }
 
-Spring::Spring(ParticleHandle start, ParticleHandle end, double length, double inStiffness)
+Spring::Spring(ParticleHandle start, ParticleHandle end, Vec3 lengthVector, double inStiffness)
 	: startParticle(start)
 	, endParticle(end)
-	, restLength(length)
+	, restVector(lengthVector)
 	, stiffness(inStiffness)
 {
 }

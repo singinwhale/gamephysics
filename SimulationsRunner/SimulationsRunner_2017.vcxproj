@@ -231,7 +231,24 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Simulations\importer\icosphere\icosphere.1.edge" />
+    <None Include="..\Simulations\importer\icosphere\icosphere.1.ele" />
+    <None Include="..\Simulations\importer\icosphere\icosphere.1.face" />
+    <None Include="..\Simulations\importer\icosphere\icosphere.1.neigh" />
+    <None Include="..\Simulations\importer\icosphere\icosphere.1.node" />
+    <None Include="..\Simulations\importer\icosphere\icosphere.1.smesh" />
+    <None Include="..\Simulations\importer\suzanne\suzanne.1.edge" />
+    <None Include="..\Simulations\importer\suzanne\suzanne.1.ele" />
+    <None Include="..\Simulations\importer\suzanne\suzanne.1.face" />
+    <None Include="..\Simulations\importer\suzanne\suzanne.1.node" />
+    <None Include="..\Simulations\importer\suzanne\suzanne.1.smesh" />
     <None Include="..\SimulatorTester\SimulatorTester.vcxproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Simulations\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Simulations\Simulations.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
