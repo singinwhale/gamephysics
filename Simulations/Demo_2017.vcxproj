@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Simulations</RootNamespace>
     <ProjectName>Simulations</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -253,13 +253,11 @@
     <ClInclude Include="ParticleIntegratorBase.h" />
     <ClInclude Include="ParticleSimulationTypes.h" />
     <ClInclude Include="PhysicsFunctions.h" />
-<<<<<<< HEAD
+
     <ClInclude Include="RigidBodySimulationTypes.h" />
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="RigidBodySystemSimulator.h" />
-=======
     <ClInclude Include="resource.h" />
->>>>>>> Added tetrahedralized meshes that can be used as soft body mass spring systems
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="TemplateSimulator.h" />
     <ClInclude Include="util\FFmpeg.h" />

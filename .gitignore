@@ -1,13 +1,19 @@
 #visual studio project files
 /.vs
-*.vcxproj.user
-
-
+#
 #debug files
-/Win32
-**/lib
-**/Debug
-**/Release
+Win32/
+Debug/
+x64/
+
+*.iobj
+*.ipdb
+*.pdb
+*.obj
+*.tlog
+*.log
+*.cache
+*.vcxproj.user
 
 SimulationsRunner/Win32
 SimulationsRunner/Debug
