@@ -25,6 +25,8 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_particleIntegrators[EULER] = std::make_unique<EulerParticleIntegrator>();
 	m_particleIntegrators[LEAPFROG] = std::make_unique<LeapfrogParticleIntegrator>();
 	m_particleIntegrators[MIDPOINT] = std::make_unique<MidpointParticleIntegrator>();
+
+	m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
 }
 
 #define STR(content) #content
@@ -35,11 +37,15 @@ const char * MassSpringSystemSimulator::getTestCasesStr(){
 }
 
 void MassSpringSystemSimulator::reset(){
-	    m_worldState.particles.clear();
-		m_worldState.springs.clear();
-		m_mouse.x = m_mouse.y = 0;
-		m_trackmouse.x = m_trackmouse.y = 0;
-		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
+	m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
+	m_pRigidBodySystem->m_params = m_params;
+	m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3)));
+
+	m_worldState.particles.clear();
+	m_worldState.springs.clear();
+	m_mouse.x = m_mouse.y = 0;
+	m_trackmouse.x = m_trackmouse.y = 0;
+	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
 void doDemo(size_t integratorType)
@@ -419,6 +425,33 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 			}
 		}
 	}
+
+	// Update rigid body system
+	m_pRigidBodySystem->m_params = m_params;
+
+	auto addConstraint = [&](Vec3 position, Vec3 norm)
+	{
+		m_pRigidBodySystem->m_constraints.push_back({ position, getNormalized(norm) });
+	};
+
+	float scale = 1.0;
+	m_pRigidBodySystem->m_constraints.clear();
+	if (m_hasFloor)
+	{
+		addConstraint(Vec3(0, -1, 0)*scale, Vec3(0, 1, 0));
+	}
+	if (m_hasBoudaries)
+	{
+		addConstraint(Vec3(1, 0, 0)*scale, Vec3(-1, 0, 0));
+		addConstraint(Vec3(-1, 0, 0)*scale, Vec3(1, 0, 0));
+		addConstraint(Vec3(0, 1, 0)*scale, Vec3(0, -1, 0));
+		addConstraint(Vec3(0, 0, 1)*scale, Vec3(0, 0, -1));
+		addConstraint(Vec3(0, 0, -1)*scale, Vec3(0, 0, 1));
+	}
+	m_pRigidBodySystem->tick(timeStep);
+
+	// Detect collisions for both RB & points
+	//TODO
 }
 
 /*
@@ -445,9 +478,20 @@ void MassSpringSystemSimulator::drawTriangle()
 	DUC->DrawTriangleUsingShaders();
 }*/
 
+void MassSpringSystemSimulator::drawBoxes()
+{
+	for (const Box& box : m_pRigidBodySystem->m_rigid_bodies)
+	{
+		DUC->drawRigidBody(box.asMatrix());
+	}
+}
+
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	this->renderWorldParticles(this->m_worldState);
+	// Render RB
+	DUC->setUpLighting(Vec3::ZERO, Vec3(1, 1, 1), 0.1, Vec3(.9, .9, .9));
+	drawBoxes();
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -653,4 +697,7 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
 	m_particleIntegrators[m_iIntegrator]->AddGlobalForce(force);
+
+	m_params.constantAcceleration = force;
+
 }

@@ -3,6 +3,7 @@
 #include "Simulator.h"
 #include "IParticleIntegrator.h"
 #include "ParticleSimulationTypes.h"
+#include "RigidBodySystem.h"
 
 namespace import {
 	class SpringsImporter;
@@ -75,6 +76,8 @@ public:
 	size_t findClosesPoint(const WorldState& world, float px, float py);
 	void renderWorldParticles(const WorldState& world);
 
+	void drawBoxes();
+
 private:
 	// Data Attributes
 	float m_fMass = 10;
@@ -96,6 +99,9 @@ private:
 	// Simulation State
 	WorldState m_worldState;
 	std::unique_ptr<IParticleIntegrator> m_particleIntegrators[3];
+
+	std::shared_ptr<RigidBodySystem> m_pRigidBodySystem;
+	RBSSParams m_params;
 
 	size_t m_selectedParticle = -1;
 
