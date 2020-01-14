@@ -76,7 +76,9 @@ public:
 	size_t findClosesPoint(const WorldState& world, float px, float py);
 	void renderWorldParticles(const WorldState& world);
 
+	// Rigid body extensions
 	void drawBoxes();
+	void checkRigidBodyMassSpringIntercollisions();
 
 private:
 	// Data Attributes

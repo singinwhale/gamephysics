@@ -1,4 +1,5 @@
-﻿#include "RigidBodySimulationTypes.h"
+﻿#include <array>
+#include "RigidBodySimulationTypes.h"
 #include "util/util.h"
 #include "DrawingUtilitiesClass.h"
 #include "SimpleMath.h"
@@ -92,6 +93,61 @@ const bool Box::haveSphereBVIntersection(const Box & other) const
 		return false;
 	}
 	return true;
+}
+
+const bool Box::isPointInsideBoundingSphere(const Vec3 & point) const
+{
+	float maxDimensionA = max(m_extents.x, max(m_extents.y, m_extents.z));
+	if (m_position.squaredDistanceTo(point) > square(maxDimensionA))
+	{
+		return false;
+	}
+	return true;
+}
+
+const bool Box::hasCollisionWithPoint(const Vec3 point, Vec3 & out_collisionPoint) const
+{
+	if (!isPointInsideBoundingSphere(point))
+		return false;
+	// Transform point to BB's space
+	const auto relativePoint = point - this->m_position;
+	const auto pointBBspace = this->m_rotation.getRotMat().inverse().operator*(relativePoint);
+	// Detect if point is within extent
+	const auto isInRange = [](const float x, const float low, const float high) { return x >= low && x <= high; };
+	bool isInside = isInRange(pointBBspace.x, -this->m_extents.x, this->m_extents.x)
+		&& isInRange(pointBBspace.y, -this->m_extents.y, this->m_extents.y)
+		&& isInRange(pointBBspace.z, -this->m_extents.z, this->m_extents.z);
+	if (!isInside)
+		return false;
+	// Otherwise, project point to planes and return the point on closest plane
+	// Algorithm: for each dimension, calculate distance to the closest plane
+	// and take the dimension with lowest distance, and add its distance to point
+	auto distancesToClosestPlane = this->m_extents - (pointBBspace.getAbsolutes());
+	auto getIndexOfMinimalDimension = [](const Vec3 p)
+	{
+		if (p.x < p.y)
+		{
+			if (p.x < p.z)
+				return 0;
+			else
+				return 2;
+		}
+		else {
+
+			if (p.y < p.z)
+				return 1;
+			else
+				return 2;
+		}
+	};
+	const auto index = getIndexOfMinimalDimension(distancesToClosestPlane);
+	const auto sign = (pointBBspace[index] > 0)?1:-1;
+	// Store closest point on plane according to orthogonal projection
+	out_collisionPoint = pointBBspace;
+	out_collisionPoint[index] += sign * distancesToClosestPlane[index];
+	// Transform back to world coords
+	out_collisionPoint = this->m_rotation.getRotMat() * out_collisionPoint;
+	return false;
 }
 
 const Vec3 Box::getAngularVelocity() const

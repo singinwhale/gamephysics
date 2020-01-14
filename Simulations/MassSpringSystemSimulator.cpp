@@ -486,6 +486,21 @@ void MassSpringSystemSimulator::drawBoxes()
 	}
 }
 
+void MassSpringSystemSimulator::checkRigidBodyMassSpringIntercollisions()
+{
+	// Naive implementation: checks if point is inside the box
+	for (auto &particle : this->m_worldState.particles)
+	{
+		for (auto& rb : this->m_pRigidBodySystem->m_rigid_bodies)
+		{
+			// Fast check: if point is inside bounding sphere
+			Vec3 collision;
+			bool hasCollision = rb.hasCollisionWithPoint(particle.position, collision);
+			// TODO: Calculate impact vector
+		}
+	}
+}
+
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	this->renderWorldParticles(this->m_worldState);

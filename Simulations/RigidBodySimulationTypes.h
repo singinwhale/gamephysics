@@ -84,6 +84,10 @@ public:
 	/** Calculate if bounding spheres of boxes are intersecting */
 	const bool haveSphereBVIntersection(const Box& other) const;
 
+	const bool isPointInsideBoundingSphere(const Vec3& point) const;
+
+	const bool hasCollisionWithPoint(const Vec3 point, Vec3& out_collisionPoint) const;
+		
 	const Vec3 getAngularVelocity() const;
 };
 
