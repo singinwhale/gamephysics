@@ -100,6 +100,7 @@ void RigidBodySystemSimulator::reset()
 {
 	m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
 	m_pRigidBodySystem->m_params = m_params;
+
 	Vec3 size = Vec3(0.1);
 	switch(m_iTestCase)
 	{

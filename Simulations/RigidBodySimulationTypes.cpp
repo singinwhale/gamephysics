@@ -111,7 +111,8 @@ const bool Box::hasCollisionWithPoint(const Vec3 point, Vec3 & out_collisionPoin
 		return false;
 	// Transform point to BB's space
 	const auto relativePoint = point - this->m_position;
-	const auto pointBBspace = this->m_rotation.getRotMat().inverse().operator*(relativePoint);
+	auto pointBBspace = this->m_rotation.getRotMat().inverse().operator*(relativePoint);
+	pointBBspace = pointBBspace*2;
 	// Detect if point is within extent
 	const auto isInRange = [](const float x, const float low, const float high) { return x >= low && x <= high; };
 	bool isInside = isInRange(pointBBspace.x, -this->m_extents.x, this->m_extents.x)
@@ -146,7 +147,8 @@ const bool Box::hasCollisionWithPoint(const Vec3 point, Vec3 & out_collisionPoin
 	out_collisionPoint = pointBBspace;
 	out_collisionPoint[index] += sign * distancesToClosestPlane[index];
 	// Transform back to world coords
-	out_collisionPoint = this->m_rotation.getRotMat() * out_collisionPoint;
+	out_collisionPoint = this->m_rotation.getRotMat() * (out_collisionPoint*0.5);
+	out_collisionPoint += this->m_position;
 	return true;
 }
 

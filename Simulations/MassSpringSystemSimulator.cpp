@@ -39,7 +39,7 @@ const char * MassSpringSystemSimulator::getTestCasesStr(){
 void MassSpringSystemSimulator::reset(){
 	m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
 	m_pRigidBodySystem->m_params = m_params;
-	m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3)));
+	//m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3)));
 
 	m_worldState.particles.clear();
 	m_worldState.springs.clear();
@@ -162,6 +162,50 @@ void MassSpringSystemSimulator::handleAddSuzanne(void* simulator)
 	auto importer = import::TetGenImporter(L"SUZANNE");
 
 	sim->UseImporter(&importer);
+}
+
+void MassSpringSystemSimulator::handleAddCloth(void* simulator)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+
+	size_t max_rows = 20;
+	size_t particles_per_row = 20;
+	std::vector<int> previousRow;
+	std::vector<int> rowMassPoints;
+	float lengthBetweenRows = 0.05;
+	float magicConstant = 1.8;
+	float perRowDistance = magicConstant * lengthBetweenRows;
+	float side = perRowDistance * max_rows;
+	Vec3 rightTopCorner = Vec3(-side*0.5, 0.0, -side*0.5);
+
+	float mass = 0.001;
+	float stiffness = 0.1;
+	for (size_t r = 0; r < max_rows; r++)
+	{
+		// I. generate row
+		for (size_t p = 0; p < particles_per_row; p++)
+		{
+			Vec3 position = rightTopCorner+Vec3(r*lengthBetweenRows*magicConstant, 0, p*lengthBetweenRows*magicConstant);
+			sim->m_worldState.particles.push_back(Particle(Vec3(position), Vec3(0.0),mass, false));
+			auto id = sim->m_worldState.particles.size()-1;
+			rowMassPoints.push_back(id);
+			// Connect with previous in row
+			if (p > 0)
+				sim->addSpring(rowMassPoints[p - 1], id, lengthBetweenRows);
+			// If this is the first row, than don't start connecting with other rows, yet
+			if (r == 0)
+				continue;
+			// II. for each point, connect with its previous's row counterpart and its left right neighbour
+			if (p > 0)
+				sim->addSpring(previousRow[p - 1], id, lengthBetweenRows*sqrt(2));
+			if (p < particles_per_row-1)
+				sim->addSpring(previousRow[p + 1], id, lengthBetweenRows*sqrt(2));
+			sim->addSpring(previousRow[p], id, lengthBetweenRows);
+		}
+		// III. ping-pong buffers
+		previousRow = rowMassPoints;
+		rowMassPoints.clear();
+	}
 }
 
 void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
@@ -288,6 +332,7 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	TwAddButton(DUC->g_pTweakBar,"Add random point", &MassSpringSystemSimulator::handleAddRandomPointButtonClicked, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add icosphere", &MassSpringSystemSimulator::handleAddIcosphere, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add Suzanne", &MassSpringSystemSimulator::handleAddSuzanne, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Add cloth", &MassSpringSystemSimulator::handleAddCloth, this, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Bounce ratio", TW_TYPE_FLOAT, &m_bounceRatio, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
@@ -316,11 +361,11 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		m_worldState.particles.clear();
 		m_worldState.springs.clear();
 
-		m_worldState.particles.push_back(Particle(Vec3(0.0, 1.0, 0.0),Vec3(0.0,0.0,0.0),10.0));
+		//m_worldState.particles.push_back(Particle(Vec3(0.0, 1.0, 0.0),Vec3(0.0,0.0,0.0),10.0));
 
 		m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
 		m_pRigidBodySystem->m_params = m_params;
-		m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3)));
+		m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3),100.0));
 		return;
 	}
 	cout << "Testcase changed to: ";
@@ -508,10 +553,25 @@ void MassSpringSystemSimulator::checkRigidBodyMassSpringIntercollisions(float ti
 			}
 			// TODO: Calculate linear impact vector
 			auto vRel = rb.m_velocity - particle.velocity;
+			bool isRBFaster = (norm(rb.m_velocity) > norm(particle.velocity));
 			auto dir = getNormalized(collision - particle.position);
-			float Jdirection = (1.0+dot(vRel, dir)) / (1.0 / particle.mass + 1.0 / rb.m_mass);
+
+			constexpr auto bounciness = 0.5;
+			float Jdirection = (bounciness+dot(vRel, dir)) / (1.0 / particle.mass + 1.0 / rb.m_mass);
 			particle.velocity += Jdirection*dir / particle.mass;
 			rb.m_velocity -= Jdirection*dir / rb.m_mass;
+
+			if (dot(vRel,dir) > 0)
+			{ // correct the faster one
+				if(isRBFaster)
+					rb.m_position -= collision - particle.position;
+				else
+					particle.position += collision - particle.position;
+			}
+			else {
+				particle.position += collision - particle.position;
+
+			}
 		}
 	}
 }
@@ -698,11 +758,14 @@ int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool i
 	return m_worldState.particles.size() - 1;
 }
 
-Spring& MassSpringSystemSimulator::addSpring(int masspoint1, int masspoint2, float initialLength)
+Spring& MassSpringSystemSimulator::addSpring(int masspoint1, int masspoint2, float initialLength, float stiffness)
 {
-	m_worldState.springs.push_back(Spring(ParticleHandle(masspoint1), ParticleHandle(masspoint2), initialLength, m_fStiffness));
+	if (stiffness <= 0.0)
+		stiffness = m_fStiffness;
+	m_worldState.springs.push_back(Spring(ParticleHandle(masspoint1), ParticleHandle(masspoint2), initialLength, stiffness));
 	return m_worldState.springs.back();
 }
+
 
 int MassSpringSystemSimulator::getNumberOfMassPoints()
 {

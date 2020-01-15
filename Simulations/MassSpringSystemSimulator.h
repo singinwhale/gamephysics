@@ -40,6 +40,7 @@ public:
 	static void TW_CALL handleAddRope(void* simulator);
 	static void TW_CALL handleAddIcosphere(void* simulator);
 	static void TW_CALL handleAddSuzanne(void* simulator);
+	static void TW_CALL handleAddCloth(void* simulator);
 	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
 	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);
@@ -54,7 +55,7 @@ public:
 	void setStiffness(float stiffness);
 	void setDampingFactor(float damping);
 	int addMassPoint(Vec3 position, Vec3 Velocity, bool isFixed);
-	Spring& addSpring(int masspoint1, int masspoint2, float initialLength);
+	Spring& addSpring(int masspoint1, int masspoint2, float initialLength,float stiffness=0.0);
 	int getNumberOfMassPoints();
 	int getNumberOfSprings();
 	Vec3 getPositionOfMassPoint(int index);
