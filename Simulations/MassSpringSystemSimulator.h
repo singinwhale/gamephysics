@@ -78,7 +78,7 @@ public:
 
 	// Rigid body extensions
 	void drawBoxes();
-	void checkRigidBodyMassSpringIntercollisions();
+	void checkRigidBodyMassSpringIntercollisions(float timestep);
 
 private:
 	// Data Attributes

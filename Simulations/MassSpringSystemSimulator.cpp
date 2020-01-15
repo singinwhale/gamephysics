@@ -315,6 +315,12 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		// Reset scene
 		m_worldState.particles.clear();
 		m_worldState.springs.clear();
+
+		m_worldState.particles.push_back(Particle(Vec3(0.0, 1.0, 0.0),Vec3(0.0,0.0,0.0),10.0));
+
+		m_pRigidBodySystem = std::make_unique<RigidBodySystem>();
+		m_pRigidBodySystem->m_params = m_params;
+		m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3)));
 		return;
 	}
 	cout << "Testcase changed to: ";
@@ -387,6 +393,7 @@ bool clampWithDetection(T& input, T min, T max)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
+	float scale = 1.0;
 	// update current setup for each frame
 	auto& currentIntegrator = m_particleIntegrators[m_iIntegrator];
 	currentIntegrator->ResetGlobalForces();
@@ -399,7 +406,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	{
 		for (auto& particle : m_worldState.particles)
 		{
-			if (clampWithDetection<GamePhysics::Real>(particle.position.y, -0.5, INFTY))
+			if (clampWithDetection<GamePhysics::Real>(particle.position.y, -1.0, INFTY))
 			{
 				particle.velocity.y *= -m_bounceRatio;
 			}
@@ -434,7 +441,6 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		m_pRigidBodySystem->m_constraints.push_back({ position, getNormalized(norm) });
 	};
 
-	float scale = 1.0;
 	m_pRigidBodySystem->m_constraints.clear();
 	if (m_hasFloor)
 	{
@@ -451,7 +457,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	m_pRigidBodySystem->tick(timeStep);
 
 	// Detect collisions for both RB & points
-	//TODO
+	checkRigidBodyMassSpringIntercollisions(timeStep);
 }
 
 /*
@@ -486,7 +492,7 @@ void MassSpringSystemSimulator::drawBoxes()
 	}
 }
 
-void MassSpringSystemSimulator::checkRigidBodyMassSpringIntercollisions()
+void MassSpringSystemSimulator::checkRigidBodyMassSpringIntercollisions(float timestep)
 {
 	// Naive implementation: checks if point is inside the box
 	for (auto &particle : this->m_worldState.particles)
@@ -496,7 +502,16 @@ void MassSpringSystemSimulator::checkRigidBodyMassSpringIntercollisions()
 			// Fast check: if point is inside bounding sphere
 			Vec3 collision;
 			bool hasCollision = rb.hasCollisionWithPoint(particle.position, collision);
-			// TODO: Calculate impact vector
+			if (!hasCollision)
+			{
+				continue;
+			}
+			// TODO: Calculate linear impact vector
+			auto vRel = rb.m_velocity - particle.velocity;
+			auto dir = getNormalized(collision - particle.position);
+			float Jdirection = (1.0+dot(vRel, dir)) / (1.0 / particle.mass + 1.0 / rb.m_mass);
+			particle.velocity += Jdirection*dir / particle.mass;
+			rb.m_velocity -= Jdirection*dir / rb.m_mass;
 		}
 	}
 }
@@ -715,4 +730,5 @@ void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 
 	m_params.constantAcceleration = force;
 
+	m_externalForce = force;
 }

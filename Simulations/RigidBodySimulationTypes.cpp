@@ -147,7 +147,7 @@ const bool Box::hasCollisionWithPoint(const Vec3 point, Vec3 & out_collisionPoin
 	out_collisionPoint[index] += sign * distancesToClosestPlane[index];
 	// Transform back to world coords
 	out_collisionPoint = this->m_rotation.getRotMat() * out_collisionPoint;
-	return false;
+	return true;
 }
 
 const Vec3 Box::getAngularVelocity() const
