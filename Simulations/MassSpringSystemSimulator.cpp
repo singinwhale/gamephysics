@@ -208,6 +208,57 @@ void MassSpringSystemSimulator::handleAddCloth(void* simulator)
 	}
 }
 
+void TW_CALL MassSpringSystemSimulator::handleFixedNet(void * simulator)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+
+	size_t max_rows = 20;
+	size_t particles_per_row = 20;
+	std::vector<int> previousRow;
+	std::vector<int> rowMassPoints;
+	float lengthBetweenRows = 0.05;
+	float magicConstant = 1.8;
+	float perRowDistance = magicConstant * lengthBetweenRows;
+	float side = perRowDistance * max_rows;
+	Vec3 rightTopCorner = Vec3(-side * 0.5, -0.5, -side * 0.5);
+
+	float mass = 0.001;
+	float stiffness = 0.1;
+	for (size_t r = 0; r < max_rows; r++)
+	{
+		// I. generate row
+		for (size_t p = 0; p < particles_per_row; p++)
+		{
+			Vec3 position = rightTopCorner + Vec3(r*lengthBetweenRows*magicConstant, 0, p*lengthBetweenRows*magicConstant);
+			sim->m_worldState.particles.push_back(Particle(Vec3(position), Vec3(0.0), mass, false));
+			auto id = sim->m_worldState.particles.size() - 1;
+			rowMassPoints.push_back(id);
+
+			// IV. mark mass point as fixed if it's at boundary
+			if (r * p == 0 || ((r == max_rows - 1) || (p == particles_per_row)))
+			{
+				sim->m_worldState.particles.back().isFixed = true;
+			}
+
+			// Connect with previous in row
+			if (p > 0)
+				sim->addSpring(rowMassPoints[p - 1], id, lengthBetweenRows);
+			// If this is the first row, than don't start connecting with other rows, yet
+			if (r == 0)
+				continue;
+			// II. for each point, connect with its previous's row counterpart and its left right neighbour
+			if (p > 0)
+				sim->addSpring(previousRow[p - 1], id, lengthBetweenRows*sqrt(2));
+			if (p < particles_per_row - 1)
+				sim->addSpring(previousRow[p + 1], id, lengthBetweenRows*sqrt(2));
+			sim->addSpring(previousRow[p], id, lengthBetweenRows);
+		}
+		// III. ping-pong buffers
+		previousRow = rowMassPoints;
+		rowMassPoints.clear();
+	}
+}
+
 void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
 {
 	auto sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
@@ -333,6 +384,7 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	TwAddButton(DUC->g_pTweakBar,"Add icosphere", &MassSpringSystemSimulator::handleAddIcosphere, this, "");
 	TwAddButton(DUC->g_pTweakBar,"Add Suzanne", &MassSpringSystemSimulator::handleAddSuzanne, this, "");
 	TwAddButton(DUC->g_pTweakBar, "Add cloth", &MassSpringSystemSimulator::handleAddCloth, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Add fixed net", &MassSpringSystemSimulator::handleFixedNet, this, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Bounce ratio", TW_TYPE_FLOAT, &m_bounceRatio, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
