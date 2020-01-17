@@ -42,6 +42,7 @@ public:
 	static void TW_CALL handleAddSuzanne(void* simulator);
 	static void TW_CALL handleAddCloth(void* simulator);
 	static void TW_CALL handleFixedNet(void* simulator);
+	static void TW_CALL handleRandomCube(void* simulator);
 	static void TW_CALL handleAddRandomPointButtonClicked(void* simulator);
 	static void TW_CALL handleGravityChanged(const void* newValue, void* userData);
 	static void TW_CALL twGetGravityCallback(void* targetValue, void* userData);

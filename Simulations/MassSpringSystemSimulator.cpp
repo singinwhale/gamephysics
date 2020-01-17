@@ -212,6 +212,10 @@ void TW_CALL MassSpringSystemSimulator::handleFixedNet(void * simulator)
 {
 	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
 
+	sim->m_pRigidBodySystem->m_rigid_bodies.clear();
+	sim->m_pRigidBodySystem->m_rigid_bodies.push_back(Box(Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.3, 0.3), 10.0));
+	
+
 	size_t max_rows = 20;
 	size_t particles_per_row = 20;
 	std::vector<int> previousRow;
@@ -222,8 +226,8 @@ void TW_CALL MassSpringSystemSimulator::handleFixedNet(void * simulator)
 	float side = perRowDistance * max_rows;
 	Vec3 rightTopCorner = Vec3(-side * 0.5, -0.5, -side * 0.5);
 
-	float mass = 0.001;
-	float stiffness = 0.1;
+	float mass = 0.01;
+	float stiffness = 100.0;
 	for (size_t r = 0; r < max_rows; r++)
 	{
 		// I. generate row
@@ -235,28 +239,41 @@ void TW_CALL MassSpringSystemSimulator::handleFixedNet(void * simulator)
 			rowMassPoints.push_back(id);
 
 			// IV. mark mass point as fixed if it's at boundary
-			if (r * p == 0 || ((r == max_rows - 1) || (p == particles_per_row)))
+			if (r * p == 0 || ((r == max_rows - 1) || (p == particles_per_row-1)))
 			{
 				sim->m_worldState.particles.back().isFixed = true;
 			}
 
 			// Connect with previous in row
 			if (p > 0)
-				sim->addSpring(rowMassPoints[p - 1], id, lengthBetweenRows);
+				sim->addSpring(rowMassPoints[p - 1], id, lengthBetweenRows,stiffness);
 			// If this is the first row, than don't start connecting with other rows, yet
 			if (r == 0)
 				continue;
 			// II. for each point, connect with its previous's row counterpart and its left right neighbour
 			if (p > 0)
-				sim->addSpring(previousRow[p - 1], id, lengthBetweenRows*sqrt(2));
+				sim->addSpring(previousRow[p - 1], id, lengthBetweenRows*sqrt(2), stiffness);
 			if (p < particles_per_row - 1)
-				sim->addSpring(previousRow[p + 1], id, lengthBetweenRows*sqrt(2));
+				sim->addSpring(previousRow[p + 1], id, lengthBetweenRows*sqrt(2), stiffness);
 			sim->addSpring(previousRow[p], id, lengthBetweenRows);
 		}
 		// III. ping-pong buffers
 		previousRow = rowMassPoints;
 		rowMassPoints.clear();
 	}
+}
+
+float getUniform()
+{
+	return static_cast<float>(rand()) / RAND_MAX;
+}
+
+void TW_CALL MassSpringSystemSimulator::handleRandomCube(void * simulator)
+{
+	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(simulator);
+	Vec3 position = Vec3(getUniform(), 2.0, getUniform());
+	float mass = 10 + getUniform() * 50;
+	sim->m_pRigidBodySystem->m_rigid_bodies.push_back(Box(position, Vec3(0.3, 0.3, 0.3), mass));
 }
 
 void TW_CALL MassSpringSystemSimulator::handleAddRandomPointButtonClicked(void* simulator)
@@ -385,6 +402,7 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	TwAddButton(DUC->g_pTweakBar,"Add Suzanne", &MassSpringSystemSimulator::handleAddSuzanne, this, "");
 	TwAddButton(DUC->g_pTweakBar, "Add cloth", &MassSpringSystemSimulator::handleAddCloth, this, "");
 	TwAddButton(DUC->g_pTweakBar, "Add fixed net", &MassSpringSystemSimulator::handleFixedNet, this, "");
+	TwAddButton(DUC->g_pTweakBar, "Add random cube", &MassSpringSystemSimulator::handleRandomCube, this, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Bounce ratio", TW_TYPE_FLOAT, &m_bounceRatio, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has floor", TW_TYPE_BOOLCPP, &m_hasFloor, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Has boundaries", TW_TYPE_BOOLCPP, &m_hasBoudaries, "");
@@ -613,12 +631,13 @@ void MassSpringSystemSimulator::checkRigidBodyMassSpringIntercollisions(float ti
 			particle.velocity += Jdirection*dir / particle.mass;
 			rb.m_velocity -= Jdirection*dir / rb.m_mass;
 
-			if (dot(vRel,dir) > 0)
+			if (particle.isFixed)
+			{	// if particle is fixed, then only correct RigidBody
+				rb.m_position -= collision - particle.position;
+			}
+			else if (dot(vRel, dir) > 0 && isRBFaster)
 			{ // correct the faster one
-				if(isRBFaster)
-					rb.m_position -= collision - particle.position;
-				else
-					particle.position += collision - particle.position;
+				rb.m_position -= collision - particle.position;
 			}
 			else {
 				particle.position += collision - particle.position;
