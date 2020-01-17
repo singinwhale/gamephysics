@@ -25,6 +25,16 @@ public:
 	 */
 	virtual void ResetGlobalForces() = 0;
 
+	/**
+	 * adds a vector to the global forces which will be applied to every particle during the simulation
+	 */
+	virtual void AddGlobalAcceleration(Vec3 force) = 0;
+
+	/**
+	 * Resets the global forces to (0,0,0)
+	 */
+	virtual void ResetGlobalAcceleration() = 0;
+
 	virtual void SetDampingFactor(float dampingFactor) = 0;
 };
 

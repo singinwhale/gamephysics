@@ -92,6 +92,7 @@ private:
 
 	// UI Attributes
 	Vec3 m_externalForce = Vec3::ZERO;
+	Vec3 m_externalAcceleration = Vec3::ZERO;
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;

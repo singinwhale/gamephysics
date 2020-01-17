@@ -18,7 +18,7 @@ WorldState LeapfrogParticleIntegrator::GetNextSimulationStep(const WorldState& C
 		if(particle.isFixed)
 			continue;
 		
-		const Vec3 acceleration = particle.force / particle.mass;
+		const Vec3 acceleration = particle.force / particle.mass + globalAcceleration;
 		// integrate velocity first and then immediately use it in position update
 		particle.velocity = Physics::eulerIntegration(particle.velocity, acceleration, deltaSeconds);
 

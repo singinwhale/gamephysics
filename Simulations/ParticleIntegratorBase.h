@@ -11,10 +11,15 @@ public:
 	virtual void AddGlobalForce(Vec3 force) override;
 	virtual void ResetGlobalForces() override;
 
+	virtual void AddGlobalAcceleration(Vec3 force) override;
+	virtual void ResetGlobalAcceleration() override;
+
 	virtual void SetDampingFactor(float dampingFactor) override;
 protected:
 	/** Sum of all forces that should be applied to all particles every tick */
 	Vec3 globalForce = Vec3::ZERO;
+
+	Vec3 globalAcceleration = Vec3::ZERO;
 
 	float damping = 0;
 

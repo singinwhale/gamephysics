@@ -19,7 +19,7 @@ WorldState MidpointParticleIntegrator::GetNextSimulationStep(const WorldState& C
 	// compute midpoint euler integration for half timestep
 	for (Particle& particle : midPointState.particles)
 	{
-		const Vec3 acceleration = particle.force / particle.mass;
+		const Vec3 acceleration = particle.force / particle.mass + globalAcceleration;
 		particle.position = Physics::eulerIntegration(particle.position, particle.velocity, deltaSeconds/2);
 		particle.velocity = Physics::eulerIntegration(particle.velocity, acceleration, deltaSeconds/2);
 	}
@@ -41,7 +41,7 @@ WorldState MidpointParticleIntegrator::GetNextSimulationStep(const WorldState& C
 		
 		const Particle& midpointParticle = midPointState.particles[i];
 
-		const Vec3 midpointAcceleration = midpointParticle.force / midpointParticle.mass;
+		const Vec3 midpointAcceleration = midpointParticle.force / midpointParticle.mass + globalAcceleration;
 
 		// velocity is the slope of the position function so we take the velocity at the midpoint (not the force)
 		// and make a full step with that

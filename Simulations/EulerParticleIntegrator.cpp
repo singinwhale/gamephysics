@@ -18,7 +18,7 @@ WorldState EulerParticleIntegrator::GetNextSimulationStep(const WorldState& Curr
 		if(particle.isFixed)
 			continue;
 		
-		const Vec3 acceleration = particle.force / particle.mass;
+		const Vec3 acceleration = particle.force / particle.mass + globalAcceleration;
 
 		// integrate position first using the velocity from the last frame
 		particle.position = Physics::eulerIntegration(particle.position, particle.velocity, deltaSeconds);

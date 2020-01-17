@@ -19,6 +19,16 @@ void ParticleIntegratorBase::ResetGlobalForces()
 	globalForce = Vec3::ZERO;
 }
 
+void ParticleIntegratorBase::AddGlobalAcceleration(Vec3 acceleration)
+{
+	globalAcceleration += acceleration;
+}
+
+void ParticleIntegratorBase::ResetGlobalAcceleration()
+{
+	globalAcceleration = Vec3::ZERO;
+}
+
 void ParticleIntegratorBase::SetDampingFactor(float dampingFactor)
 {
 	damping = dampingFactor;
@@ -57,7 +67,7 @@ void ParticleIntegratorBase::CalculateAndStoreSpringForcesForParticles(std::vect
 	}
 
 
-	for(std::size_t i =0;i<particles.size();++i)
+	/*for(std::size_t i =0;i<particles.size();++i)
 	{
 		Particle& particle = particles[i];
 		auto fromTo = particleToSpringsMap.equal_range(i);
@@ -81,7 +91,7 @@ void ParticleIntegratorBase::CalculateAndStoreSpringForcesForParticles(std::vect
 				particle.force += cross(springVector, rotAxis - restRotAxis) * angularForce;
 			}
 		}
-	}
+	}*/
 }
 
 void ParticleIntegratorBase::StoreGlobalParticleForceForParticles(std::vector<Particle>& particles) const

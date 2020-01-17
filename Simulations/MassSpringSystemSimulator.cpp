@@ -308,7 +308,9 @@ void TW_CALL MassSpringSystemSimulator::handleGravityChanged(const void* newValu
 	auto* sim = reinterpret_cast<MassSpringSystemSimulator*>(userData);
 	Vec3 newVector = Vec3::ZERO;
 	memcpy(&newVector.value, newValue, sizeof(Real) * 3);
-	sim->applyExternalForce(newVector);
+	//sim->applyExternalForce(newVector);
+	sim->m_externalAcceleration = newVector;
+	sim->m_params.constantAcceleration = newVector;
 }
 
 void MassSpringSystemSimulator::twGetGravityCallback(void* targetValue, void* userData)
@@ -317,7 +319,7 @@ void MassSpringSystemSimulator::twGetGravityCallback(void* targetValue, void* us
 	double* targetVector = reinterpret_cast<double*>(targetValue);
 	for (char i = 0; i < 3; ++i)
 	{
-		targetVector[i] = sim->m_externalForce[i];
+		targetVector[i] = sim->m_externalAcceleration[i];
 	}
 }
 
@@ -384,8 +386,8 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	TwAddButton(DUC->g_pTweakBar, "Use physically based values", [](void* s)
 	{
 		auto sim = (MassSpringSystemSimulator*)s;
-		sim->m_externalForce = Vec3(0, -9.81, 0);
-		sim->applyExternalForce(sim->m_externalForce);
+		sim->m_externalAcceleration = Vec3(0, -9.81, 0);
+		//sim->applyExternalForce(sim->m_externalForce);
 		sim->setDampingFactor(1);
 		sim->m_hasBoudaries = true;
 		sim->m_hasFloor = true;
@@ -513,6 +515,8 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	auto& currentIntegrator = m_particleIntegrators[m_iIntegrator];
 	currentIntegrator->ResetGlobalForces();
 	currentIntegrator->AddGlobalForce(m_externalForce);
+	currentIntegrator->ResetGlobalAcceleration();
+	currentIntegrator->AddGlobalAcceleration(m_externalAcceleration);
 	m_worldState = currentIntegrator->GetNextSimulationStep(m_worldState, timeStep);
 
 	// Add floor as collision => clamp all Y components to <0,infty>
